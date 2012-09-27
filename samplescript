@@ -1,5 +1,5 @@
 #actors 2
-#id_actor 1 cube.obj
+#id_actor 1 cow.obj
 Frame=1 trans=<0,10,0> scale=<1,1,1> rot=<0,0,0>
 Frame=10 trans=<10,10,10>
 Frame=20 rot=<0,90,0>
