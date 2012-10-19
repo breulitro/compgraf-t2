@@ -2,7 +2,9 @@ compgraf_t2
 ===========
 
 Trabalho da disciplina de Computação Gráfica
+
 ===========
+tá ruim de ler no browser, mas no vi fica bala!
 
 Descrição:
 O segundo trabalho prático da disciplina de Computação Gráfica I, que deverá ser feito em dupla ou individualmente, consiste em desenvolver um protótipo em OpenGL para realizar a animação de objetos 3D usando scripts.
