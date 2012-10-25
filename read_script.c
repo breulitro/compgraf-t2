@@ -3,10 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 
-//#include "structs.h"
-typedef struct {
-  float x, y, z;
-} val_t;
+#include "structs.h"
 
 char *trim(char *str) {
   size_t len = 0;
@@ -68,20 +65,44 @@ val_t *parse_val(char *token) {
   return ret;
 }
 
+void dump_val(val_t *v) {
+  printf("<%.2f,%.2f,%.2f>\n", v->x, v->y, v->z);
+}
+
+void dump_animation(animation_t *a) {
+  printf("Frame(%d) {\n", a->frame);
+  dump_val(&a->trans);
+  dump_val(&a->scale);
+  dump_val(&a->rot);
+  printf("}\n");
+}
+
 void parse_animation(char *token) {
   char *tok, *taux;
   char *key, *val;
   val_t *v;
+  animation_t *a = malloc(sizeof(animation_t));
 
   if ((tok = strtok_r(token, " ", &taux)) == NULL)
     return;
   do {
     key = strtok_r(tok, "=", &val);
-    printf("%s: %s -> %s\n", __func__, key, val);
+  //  printf("%s: %s -> %s\n", __func__, key, val);
     v = parse_val(val);
-    printf("%s: x = %.2f y = %.2f, z = %.2f\n", __func__, v->x, v->y, v->z);
+
+//    printf("%s: x = %.2f y = %.2f, z = %.2f\n", __func__, v->x, v->y, v->z);
+    if (strcmp(key, "Frame") == 0) {
+      a->frame = ((int)v->x) == 0 ? atoi(val) : v->x;
+    } else if (strcmp(key, "trans") == 0) {
+      memcpy(&a->trans, v, sizeof(val_t));
+    } else if (strcmp(key, "scale") == 0) {
+      memcpy(&a->scale, v, sizeof(val_t));
+    } else if (strcmp(key, "rot") == 0) {
+      memcpy(&a->rot, v, sizeof(val_t));
+    }
     free(v);
   } while ((tok = strtok_r(taux, " ", &taux)) != NULL);
+  dump_animation(a);
 }
 
 void parser(char *token) {
