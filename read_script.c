@@ -36,18 +36,33 @@ char *trim(char *str) {
 
 	return str;
 }
-
+#define SINAL (-1)
 void parser(char *token) {
+	char *tok, *taux, *base, *des;
+	int ibuf;
+	char sbuf[80];
 	// header
-	if ((strstr(token, "actors")) != NULL);
-
+	if ((tok = strstr(token, "actors")) != NULL) {
+		sscanf(tok, "actors %d", &ibuf);
+		printf("buf = %d\n", ibuf);
+	}
 	// actor
-	if ((strstr(token, "id_actor")) != NULL) {
-		printf("ACTOR!!\n");
+	if ((tok = strstr(token, "id_actor")) != NULL) {
+		sscanf(tok, "id_actor %d %s", &ibuf, &sbuf); 
+		printf("ACTOR %d file:%s\n", ibuf, sbuf);
 	}
 	// animation
-	if ((strstr(token, "Frame")) != NULL) {
-		printf("ANIMAE!!\n");
+	if ((tok = strstr(token, "Frame")) != NULL) {
+		des = strdup(token);
+		
+		if ((tok = strtok_r(des, " ", &taux)) == NULL)
+			return;
+		do {
+			tok = strtok_r(tok, "=", &base);
+			printf("key: \"%s\" -> \"%s\"\n", tok, base);
+		} while ((tok = strtok_r(taux, " ", &taux)) != NULL);
+
+		free(des);
 	}
 }
 
@@ -82,7 +97,6 @@ int main(int argc, char **argv) {
 		script[i] = '\0';
 	} while (!feof(f));
 	fclose(f);
-
 	printf("%s\n", script);
 
 	char *tok;
