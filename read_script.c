@@ -3,9 +3,9 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "structs.h"
-char *trim(char *str)
-{
+//#include "structs.h"
+
+char *trim(char *str) {
 	size_t len = 0;
 	char *frontp = str - 1;
 	char *endp = NULL;
@@ -35,6 +35,20 @@ char *trim(char *str)
 	}
 
 	return str;
+}
+
+void parser(char *token) {
+	// header
+	if ((strstr(token, "actors")) != NULL);
+
+	// actor
+	if ((strstr(token, "id_actor")) != NULL) {
+		printf("ACTOR!!\n");
+	}
+	// animation
+	if ((strstr(token, "Frame")) != NULL) {
+		printf("ANIMAE!!\n");
+	}
 }
 
 int main(int argc, char **argv) {
@@ -72,29 +86,52 @@ int main(int argc, char **argv) {
 	printf("%s\n", script);
 
 	char *tok;
-	scene_t s;
-	actor_t *a;
-	struct transf_t *t;
+	//scene_t s;
+	//actor_t *a;
+	//struct transf_t *t;
 
-	i = 0;
-	tok = strtok(script, "#actors ");
-	s.nactors = atoi(tok);
-	printf("===== %d atores\n", s.nactors);
-	for (i = 0, tok = strtok(NULL, "\n"); 
-			(tok != NULL); 
-			tok = strtok(NULL, "\n"), i++) {
-		
-		tok = trim(tok);
-		if (strlen(tok) == 0)
-			continue;
-		printf("tok[%d] %s\n", i, tok);
-		tok = strtok(NULL, "#id_actor ");
-		tok = trim(tok);
-		if (strlen(tok) == 0)
-			continue;
-		puts(tok);
+	tok = strtok(script, "\n");
+	for (i = 0; tok != NULL; i++) {
+		printf("%s {\n", tok);
+		parser(tok);
+		printf("}\n");
+		tok = strtok(NULL, "\n");
 	}
 
 	if (script != NULL)
 		free(script);
 }
+
+#if 0
+break_space
+
+GSList *actors;
+
+
+typedef struct {
+        float x, y, z;
+} val_t;
+
+
+typedef struct {
+	int frame;
+	val_t trans;
+	val_t scale;
+	val_t rot;
+} animation_t;
+
+typedef struct {
+        int id;
+        char *file;
+	GSList *animations;
+} actor_t;
+
+parser_actor(char *token) {
+	actor_t actor;
+	
+}
+
+parser_animation(char *token) {
+	animation_t anim;
+}
+#endif
