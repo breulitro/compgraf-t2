@@ -3,7 +3,10 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "structs.h"
+//#include "structs.h"
+typedef struct {
+  float x, y, z;
+} val_t;
 
 char *trim(char *str) {
   size_t len = 0;
@@ -37,17 +40,65 @@ char *trim(char *str) {
   return str;
 }
 
+void parse_header(char *token) {
+  int i;
+
+  sscanf(token, "actors %d", &i);
+  printf("%s: %d\n", __func__, i);
+}
+
+void parse_actor(char *token) {
+  char obj[80];
+  int i;
+
+  sscanf(token, "id_actor %d %s", &i, &obj);
+  printf("%s: %d - %s\n", __func__, i, obj);
+}
+
+val_t *parse_val(char *token) {
+  float x, y, z;
+  val_t *ret = malloc(sizeof(val_t));
+
+  sscanf(token, "<%f,%f,%f>", &x, &y, &z);
+  //printf("%s: x = %.2f y = %.2f, z = %.2f\n", __func__, x, y, z);
+  ret->x = x;
+  ret->y = y;
+  ret->z = z;
+
+  return ret;
+}
+
+void parse_animation(char *token) {
+  char *tok, *taux;
+  char *key, *val;
+  val_t *v;
+
+  if ((tok = strtok_r(token, " ", &taux)) == NULL)
+    return;
+  do {
+    key = strtok_r(tok, "=", &val);
+    printf("%s: %s -> %s\n", __func__, key, val);
+    v = parse_val(val);
+    printf("%s: x = %.2f y = %.2f, z = %.2f\n", __func__, v->x, v->y, v->z);
+    free(v);
+  } while ((tok = strtok_r(taux, " ", &taux)) != NULL);
+}
+
 void parser(char *token) {
+  char *tok;
   // header
-  if ((strstr(token, "actors")) != NULL);
+  if ((tok = strstr(token, "actors")) != NULL)
+    parse_header(tok);
 
   // actor
-  if ((strstr(token, "id_actor")) != NULL) {
+  if ((tok = strstr(token, "id_actor")) != NULL) {
     printf("ACTOR!!\n");
+    parse_actor(tok);
   }
   // animation
-  if ((strstr(token, "Frame")) != NULL) {
+  if ((tok = strstr(token, "Frame")) != NULL) {
     printf("ANIMAE!!\n");
+    parse_animation(tok);
   }
 }
 
