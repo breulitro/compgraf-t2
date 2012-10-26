@@ -71,7 +71,7 @@ void parse_header(char *token) {
 
   sscanf(token, "actors %d", &i);
   printf("%s: %d\n", __func__, i);
-	current = NULL;
+//	current = NULL;
 }
 
 //FIXME: normalizar a string lida do arquivo de script	
@@ -79,10 +79,10 @@ void parse_actor(char *token) {
   char obj[80];
   int i;
 	
-	if (current != NULL) {
+	/*if (current != NULL) {
 		actors = g_slist_append(actors, current);
 		current = NULL;
-	}
+	}*/
 
   sscanf(token, "id_actor %d %s", &i, &obj);
   //printf("%s: %d - %s\n", __func__, i, obj);
@@ -91,6 +91,8 @@ void parse_actor(char *token) {
 
   current->id = i;
   current->file = strdup(obj);
+	
+	actors = g_slist_append(actors, current);
 }
 
 val_t *parse_val(char *token) {
@@ -112,7 +114,11 @@ void parse_animation(char *token) {
   char *key, *val;
   val_t *v;
 	
-	a = g_new(animation_t, 1);
+	if ((a = g_new(animation_t, 1)) == NULL) {
+		perror("g_new()");
+		exit(1);
+	}
+	memset(a, 0, sizeof(animation_t));
 
   if ((tok = strtok_r(token, " ", &taux)) == NULL)
     return;
@@ -142,7 +148,9 @@ void parse_animation(char *token) {
 	}
   //  free(v);
   } while ((tok = strtok_r(taux, " ", &taux)) != NULL);
+	dump_animation(a);
 	current->animations = g_slist_append(current->animations, a);
+
   //dump_animation(a);
 }
 
@@ -156,6 +164,7 @@ void parser(char *token) {
   if ((tok = strstr(token, "id_actor")) != NULL) {
     printf("ACTOR!!\n");
     parse_actor(tok);
+		printf("ator.length =%d\n", g_slist_length(actors));
   }
   // animation
   if ((tok = strstr(token, "Frame")) != NULL) {
@@ -227,6 +236,7 @@ int main(int argc, char **argv) {
     tok = strtok(NULL, "\n");
   }
 	printf("#############################################\n");
+	printf("actors.length = %d\n", g_slist_length(actors));
 	g_slist_foreach(actors, (GFunc)dump_actor, NULL);
 
 	g_slist_foreach(actors, (GFunc)clean_actor, NULL);
