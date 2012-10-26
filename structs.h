@@ -6,9 +6,9 @@ typedef struct {
 
 typedef struct {
   int frame;
-  val_t trans;
-  val_t scale;
-  val_t rot;
+  val_t *trans;
+  val_t *scale;
+  val_t *rot;
 } animation_t;
 
 typedef struct {
