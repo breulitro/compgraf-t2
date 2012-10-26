@@ -116,24 +116,30 @@ void parse_animation(char *token) {
 
   if ((tok = strtok_r(token, " ", &taux)) == NULL)
     return;
+		
+  key = strtok_r(tok, "=", &val);
+	a->frame = atoi(val);
   do {
     key = strtok_r(tok, "=", &val);
-  //  printf("%s: %s -> %s\n", __func__, key, val);
-    v = parse_val(val);
-//    printf("%s: x = %.2f y = %.2f, z = %.2f\n", __func__, v->x, v->y, v->z);
-    if (strcmp(key, "Frame") == 0) {
-      a->frame = ((int)v->x) == 0 ? atoi(val) : v->x;
-			printf("FRAME: %d -> #%s#\n", a->frame, val);
-    } else if (strcmp(key, "trans") == 0) {
-			a->trans = malloc(sizeof(val_t));
-      memcpy(a->trans, v, sizeof(val_t));
-    } else if (strcmp(key, "scale") == 0) {
-			a->scale = malloc(sizeof(val_t));
-      memcpy(a->scale, v, sizeof(val_t));
-    } else if (strcmp(key, "rot") == 0) {
-			a->rot = malloc(sizeof(val_t));
-      memcpy(a->rot, v, sizeof(val_t));
-    }
+	//  printf("%s: %s -> %s\n", __func__, key, val);
+	//    printf("%s: x = %.2f y = %.2f, z = %.2f\n", __func__, v->x, v->y, v->z);
+	/*if (strcmp(key, "Frame") == 0) {
+		v = parse_val(val);
+		a->frame = ((int)v->x) == 0 ? atoi(val) : v->x;
+		//printf("FRAME: %d -> #%s#\n", a->frame, val);
+	} else */if (strcmp(key, "trans") == 0) {
+		v = parse_val(val);
+		a->trans = malloc(sizeof(val_t));
+		memcpy(a->trans, v, sizeof(val_t));
+	} else if (strcmp(key, "scale") == 0) {
+		v = parse_val(val);
+		a->scale = malloc(sizeof(val_t));
+		memcpy(a->scale, v, sizeof(val_t));
+	} else if (strcmp(key, "rot") == 0) {
+		v = parse_val(val);
+		a->rot = malloc(sizeof(val_t));
+		memcpy(a->rot, v, sizeof(val_t));
+	}
   //  free(v);
   } while ((tok = strtok_r(taux, " ", &taux)) != NULL);
 	current->animations = g_slist_append(current->animations, a);
