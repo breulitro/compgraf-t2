@@ -29,7 +29,7 @@ char *trim(char *str) {
 
   endp = str;
   if (frontp != str) {
-    while (*frontp) 
+    while (*frontp)
       *endp++ = *frontp++;
     *endp = '\0';
   }
@@ -70,15 +70,15 @@ void parse_header(char *token) {
   int i;
 
   sscanf(token, "actors %d", &i);
-  printf("%s: %d\n", __func__, i);
+ // printf("%s: %d\n", __func__, i);
 //	current = NULL;
 }
 
-//FIXME: normalizar a string lida do arquivo de script	
+//FIXME: normalizar a string lida do arquivo de script
 void parse_actor(char *token) {
   char obj[80];
   int i;
-	
+
 	/*if (current != NULL) {
 		actors = g_slist_append(actors, current);
 		current = NULL;
@@ -91,7 +91,7 @@ void parse_actor(char *token) {
 
   current->id = i;
   current->file = strdup(obj);
-	
+
 	actors = g_slist_append(actors, current);
 }
 
@@ -113,7 +113,7 @@ void parse_animation(char *token) {
   char *tok, *taux;
   char *key, *val;
   val_t *v;
-	
+
 	if ((a = g_new(animation_t, 1)) == NULL) {
 		perror("g_new()");
 		exit(1);
@@ -122,7 +122,7 @@ void parse_animation(char *token) {
 
   if ((tok = strtok_r(token, " ", &taux)) == NULL)
     return;
-		
+
   key = strtok_r(tok, "=", &val);
 	a->frame = atoi(val);
   do {
@@ -148,7 +148,7 @@ void parse_animation(char *token) {
 	}
   //  free(v);
   } while ((tok = strtok_r(taux, " ", &taux)) != NULL);
-	dump_animation(a);
+	//dump_animation(a);
 	current->animations = g_slist_append(current->animations, a);
 
   //dump_animation(a);
@@ -162,13 +162,13 @@ void parser(char *token) {
 
   // actor
   if ((tok = strstr(token, "id_actor")) != NULL) {
-    printf("ACTOR!!\n");
+  //  printf("ACTOR!!\n");
     parse_actor(tok);
-		printf("ator.length =%d\n", g_slist_length(actors));
+	//	printf("ator.length =%d\n", g_slist_length(actors));
   }
   // animation
   if ((tok = strstr(token, "Frame")) != NULL) {
-    printf("ANIMAE!!\n");
+//    printf("ANIMAE!!\n");
     parse_animation(tok);
   }
 }
@@ -182,27 +182,26 @@ void clean_animation(animation_t *a) {
 		free(a->rot);
 }
 
-void clean_actor(actor_t *a) {	
+void clean_actor(actor_t *a) {
 	if (a->file != NULL)
 		free(a->file);
 	g_slist_foreach(a->animations, (GFunc)clean_animation, NULL);
 	g_slist_free(a->animations);
 }
 
-int main(int argc, char **argv) {
+GSList *read_script(char *file) {
   FILE *f;
   char buf[80], *script;
   size_t rb;
   int i;
 
-  if (argc != 2) {
-    printf("usage:%s <script file>\n", argv[0]);
-    return 1;
+  if (file == NULL) {
+    return NULL;
   }
 
   i = 0;
   script = malloc(1);
-  f = fopen(argv[1], "r");
+  f = fopen(file, "r");
   do {
     memset(buf, 0, 80);
     rb = fread(buf, 80, 1, f);
@@ -221,7 +220,7 @@ int main(int argc, char **argv) {
   } while (!feof(f));
   fclose(f);
 
-  printf("%s\n", script);
+  //printf("%s\n", script);
 
   char *tok;
   //scene_t s;
@@ -230,20 +229,29 @@ int main(int argc, char **argv) {
 
   tok = strtok(script, "\n");
   for (i = 0; tok != NULL; i++) {
-    printf("%s {\n", tok);
+   // printf("%s {\n", tok);
     parser(tok);
-    printf("}\n");
+    //printf("}\n");
     tok = strtok(NULL, "\n");
   }
-	printf("#############################################\n");
-	printf("actors.length = %d\n", g_slist_length(actors));
-	g_slist_foreach(actors, (GFunc)dump_actor, NULL);
+//	printf("#############################################\n");
+//	printf("actors.length = %d\n", g_slist_length(actors));
+//	g_slist_foreach(actors, (GFunc)dump_actor, NULL);
 
-	g_slist_foreach(actors, (GFunc)clean_actor, NULL);
-	g_slist_free(actors);
-	
   if (script != NULL)
     free(script);
+
+  return actors;
+}
+
+void cleanup_actors() {
+	g_slist_foreach(actors, (GFunc)clean_actor, NULL);
+	g_slist_free(actors);
+}
+
+void dump_actors() {
+	printf("actors.length = %d\n", g_slist_length(actors));
+	g_slist_foreach(actors, (GFunc)dump_actor, NULL);
 }
 
 #if 0

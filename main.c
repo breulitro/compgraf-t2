@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <GL/glut.h>
+#include <glib.h>
+
+#include "read_script.h"
+
 // all variables initialized to 1.0, meaning
 // the triangle will initially be white
 float red=1.0f, blue=1.0f, green=1.0f;
@@ -93,6 +97,18 @@ void processSpecialKeys(int key, int x, int y) {
 }
 
 int main(int argc, char **argv) {
+
+  if (argc < 2) {
+    printf("usage: %s <script file> [glut params]\n", argv[0]);
+    return 1;
+  }
+
+  GSList *l = read_script(argv[1]);
+  argv++;
+  argc--;
+  printf("script loaded\n");
+
+  dump_actors();
 
   // init GLUT and create window
   glutInit(&argc, argv);
