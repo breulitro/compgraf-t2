@@ -3,6 +3,7 @@
 #include <glib.h>
 
 #include "read_script.h"
+#include "read_obj.h"
 
 // all variables initialized to 1.0, meaning
 // the triangle will initially be white
@@ -96,6 +97,10 @@ void processSpecialKeys(int key, int x, int y) {
   }
 }
 
+GSList *interpolate(GSList *l) {
+	//TODO
+}
+
 int main(int argc, char **argv) {
 
   if (argc < 2) {
@@ -104,12 +109,17 @@ int main(int argc, char **argv) {
   }
 
   GSList *l = read_script(argv[1]);
+  //FIXME: argv[0] que vai pro glutInit não é o nome do programa
   argv++;
   argc--;
   printf("script loaded\n");
 
   dump_actors();
+  GHashTable *obj = read_obj("yoda.obj");
 
+//	g_hash_table_foreach(obj, 
+//  l = interpolate(l);
+	//GLModel *glm = glmReadObj("yoda.obj");
   // init GLUT and create window
   glutInit(&argc, argv);
   //-1 == default
