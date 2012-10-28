@@ -34,8 +34,8 @@ GHashTable *read_obj(char *file) {
 
 	GHashTable* hash = g_hash_table_new(g_str_hash, g_str_equal);
 	GSList *vertices = NULL;
-	GSList *faces = NULL;
-	
+ 	GSList *faces = NULL;
+
 	f = fopen(file, "r");
 	if (!f) {
 		perror("fopen");
@@ -63,15 +63,30 @@ GHashTable *read_obj(char *file) {
 
 	char *tok = strtok(objfile, "\n");
 	char trash;
+  int av[3], dv[3];
 	while (tok != NULL) {
+    if (tok[strlen(tok)] == '\r')
+      tok[strlen(tok)] = '\0';
 		if (tok[0] == 'v') {
 			v = g_new(val_t, 1);
-			sscanf("%c %f %f %f", &trash, &v->x, &v->y, &v->z);
+			sscanf(tok, "%c %d.%d %d.%d %d.%d", &trash, &av[0], &dv[0], &av[1], &dv[1], &av[2], &dv[2]);
+      memset(buf, 0, 80);
+      sprintf(buf, "%d.%d", av[0], dv[0]);
+      v->x = atof(buf);
+      memset(buf, 0, 80);
+      sprintf(buf, "%d.%d", av[1], dv[1]);
+      v->y = atof(buf);
+      memset(buf, 0, 80);
+      sprintf(buf, "%d.%d", av[2], dv[2]);
+      v->z = atof(buf);
 			vertices = g_slist_append(vertices, v);
 		}
 		if (tok[0] == 'f') {
 			v = g_new(val_t, 1);
-			sscanf("%c %f %f %f", &trash, &v->x, &v->y, &v->z);
+			sscanf(tok, "%c %d %d %d", &trash, &av[0], &av[1], &av[2]);
+      v->x = av[0];
+      v->y = av[1];
+      v->z = av[2];
 			faces = g_slist_append(faces, v);
 		}
 
@@ -93,7 +108,7 @@ void dump_vertice(val_t *v) {
 
 void dump_face(val_t *v) {
 	printf("face ");
-	dump_val(v);
+	dump_val_int(v);
 	puts("");
 }
 

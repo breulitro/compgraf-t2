@@ -1,3 +1,5 @@
+#ifndef _FOO_
+#define _FOO_
 #include <glib.h>
 
 typedef struct {
@@ -17,3 +19,9 @@ typedef struct {
   GSList *animations;
 } actor_t;
 
+void dump_val(val_t *v);
+void dump_val_int(val_t *v);
+void dump_animation(animation_t *a);
+void dump_actor(actor_t *a);
+
+#endif

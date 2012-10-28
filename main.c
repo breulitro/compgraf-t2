@@ -2,6 +2,7 @@
 #include <GL/glut.h>
 #include <glib.h>
 
+#include "structs.h"
 #include "read_script.h"
 #include "read_obj.h"
 
@@ -27,40 +28,10 @@ void changeSize(int w, int h) {
   // Set the viewport to be the entire window
   glViewport(0, 0, w, h);
 
-  // Set the correct perspective.
   gluPerspective(45,ratio,1,1000);
 
   // Get Back to the Modelview
   glMatrixMode(GL_MODELVIEW);
-}
-
-void renderScene(void) {
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  // Reset transformations
-  glLoadIdentity();
-  // Set the camera
-  gluLookAt(  0.0f, 0.0f, 10.0f,
-      0.0f, 0.0f,  0.0f,
-      0.0f, 1.0f,  0.0f);
-
-  glRotatef(angle, 0.0f, 1.0f, 0.0f);
-
-  glColor3f(red, green, blue);
-
-  glBegin(GL_TRIANGLES);
-    glVertex3f(-1.0f,-2.0f, 0.0f);
-    glVertex3f( 2.0f, 0.0f, 0.0);
-    glVertex3f( 0.0f, 2.0f, 0.0);
-/*    glVertex3f(-0.5,-0.5,0.0);
-    glVertex3f(0.5,0.0,0.0);
-    glVertex3f(0.0,0.5,0.0);
-*/
-  glEnd();
-
-//  angle += .2;
-
-  glutSwapBuffers();
 }
 
 void processNormalKeys(unsigned char key, int x, int y) {
@@ -101,6 +72,49 @@ GSList *interpolate(GSList *l) {
 	//TODO
 }
 
+void desenhaChao() {
+	glColor3f(0,0,1);
+	glLineWidth(1);
+	glBegin(GL_LINES);
+	for(float z=-1000; z<=1000; z+=10)
+	{
+		glVertex3f(-1000,-0.1f,z);
+		glVertex3f( 1000,-0.1f,z);
+	}
+	for(float x=-1000; x<=1000; x+=10)
+	{
+		glVertex3f(x,-0.1f,-1000);
+		glVertex3f(x,-0.1f,1000);
+	}
+	glEnd();
+	glLineWidth(1);
+}
+
+void renderScene(void) {
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	desenhaChao();
+
+  // Reset transformations
+  glLoadIdentity();
+  // Set the camera
+  gluLookAt(  0.0f, 0.0f, 10.0f,
+      0.0f, 0.0f,  0.0f,
+      0.0f, 1.0f,  0.0f);
+
+  glRotatef(angle, 0.0f, 1.0f, 0.0f);
+
+  glColor3f(red, green, blue);
+
+  glBegin(GL_TRIANGLES);
+    glVertex3f(-1.0f,-2.0f, 0.0f);
+    glVertex3f( 2.0f, 0.0f, 0.0);
+    glVertex3f( 0.0f, 2.0f, 0.0);
+  glEnd();
+
+  glutSwapBuffers();
+}
+
 int main(int argc, char **argv) {
 
   if (argc < 2) {
@@ -108,7 +122,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  GSList *l = read_script(argv[1]);
+  GSList *actors = read_script(argv[1]);
   //FIXME: argv[0] que vai pro glutInit não é o nome do programa
   argv++;
   argc--;
