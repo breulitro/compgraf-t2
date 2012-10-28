@@ -116,6 +116,7 @@ int main(int argc, char **argv) {
 
   dump_actors();
   GHashTable *obj = read_obj("yoda.obj");
+  dump_hash(obj);
 
 //	g_hash_table_foreach(obj, 
 //  l = interpolate(l);

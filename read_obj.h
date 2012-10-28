@@ -33,8 +33,8 @@ GHashTable *read_obj(char *file) {
 	val_t *v;
 
 	GHashTable* hash = g_hash_table_new(g_str_hash, g_str_equal);
-	GSList *vertices;
-	GSList *faces;
+	GSList *vertices = NULL;
+	GSList *faces = NULL;
 	
 	f = fopen(file, "r");
 	if (!f) {
@@ -60,24 +60,48 @@ GHashTable *read_obj(char *file) {
 		objfile[i] = '\0';
 	} while (!feof(f));
 	fclose(f);
-	
+
 	char *tok = strtok(objfile, "\n");
 	char trash;
-	for (; tok != NULL; tok = strtok(NULL, "\n")) {
-		if (*tok == 'v') {
+	while (tok != NULL) {
+		if (tok[0] == 'v') {
 			v = g_new(val_t, 1);
 			sscanf("%c %f %f %f", &trash, &v->x, &v->y, &v->z);
 			vertices = g_slist_append(vertices, v);
 		}
-		if (*tok == 'f') {
+		if (tok[0] == 'f') {
 			v = g_new(val_t, 1);
 			sscanf("%c %f %f %f", &trash, &v->x, &v->y, &v->z);
 			faces = g_slist_append(faces, v);
 		}
+
+		tok = strtok(NULL, "\n");
 	}
+
 	g_hash_table_insert(hash, "vertices", vertices);
 	g_hash_table_insert(hash, "faces", faces);
 	
 	g_free(objfile);
 	return hash;
+}
+
+void dump_vertice(val_t *v) {
+	printf("vertice ");
+	dump_val(v);
+	puts("");
+}
+
+void dump_face(val_t *v) {
+	printf("face ");
+	dump_val(v);
+	puts("");
+}
+
+void dump_hash(GHashTable *t) {
+	GSList *l;
+
+	l = g_hash_table_lookup(t, "vertices");
+	g_slist_foreach(l, (GFunc)dump_vertice, NULL);
+	l = g_hash_table_lookup(t, "faces");
+	g_slist_foreach(l, (GFunc)dump_face, NULL);
 }
