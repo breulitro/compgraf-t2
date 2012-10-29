@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <GL/glut.h>
 #include <glib.h>
-
+/*
 #include "structs.h"
 #include "read_script.h"
 #include "read_obj.h"
-
+*/
 // all variables initialized to 1.0, meaning
 // the triangle will initially be white
 float red=1.0f, blue=1.0f, green=1.0f;
@@ -76,12 +76,12 @@ void desenhaChao() {
 	glColor3f(0,0,1);
 	glLineWidth(1);
 	glBegin(GL_LINES);
-	for(float z=-1000; z<=1000; z+=10)
+	for(float z=-1000; z<=1000; z+=.1)
 	{
 		glVertex3f(-1000,-0.1f,z);
 		glVertex3f( 1000,-0.1f,z);
 	}
-	for(float x=-1000; x<=1000; x+=10)
+	for(float x=-1000; x<=1000; x+=.1)
 	{
 		glVertex3f(x,-0.1f,-1000);
 		glVertex3f(x,-0.1f,1000);
@@ -115,6 +115,25 @@ void renderScene(void) {
   glutSwapBuffers();
 }
 
+void processMousePassiveMotion(int x, int y) {
+  printf("%s: x=%d y =%d\n", __func__, x, y);
+}
+
+void processMouseActiveMotion(int x, int y) {
+  printf("%s: x=%d y =%d\n", __func__, x, y);
+}
+
+void processMouse(int bt, int state, int x, int y) {
+  if (state == GLUT_DOWN)
+    if (bt == GLUT_LEFT_BUTTON)
+      printf("%s:Left click @ x=%d y =%d\n", __func__, x, y);
+    else if (bt == GLUT_RIGHT_BUTTON)
+      printf("%s:Right click @ x=%d y =%d\n", __func__, x, y);
+    else if (bt == GLUT_MIDDLE_BUTTON)
+      printf("%s:Middle click @ x=%d y =%d\n", __func__, x, y);
+
+}
+
 int main(int argc, char **argv) {
 
   if (argc < 2) {
@@ -122,7 +141,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  GSList *actors = read_script(argv[1]);
+/*  GSList *actors = read_script(argv[1]);
   //FIXME: argv[0] que vai pro glutInit não é o nome do programa
   argv++;
   argc--;
@@ -131,10 +150,7 @@ int main(int argc, char **argv) {
   dump_actors();
   GHashTable *obj = read_obj("yoda.obj");
   dump_hash(obj);
-
-//	g_hash_table_foreach(obj, 
-//  l = interpolate(l);
-	//GLModel *glm = glmReadObj("yoda.obj");
+*/
   // init GLUT and create window
   glutInit(&argc, argv);
   //-1 == default
@@ -149,6 +165,10 @@ int main(int argc, char **argv) {
   glutIdleFunc(renderScene);
   glutKeyboardFunc(processNormalKeys);
   glutSpecialFunc(processSpecialKeys);
+
+  glutMouseFunc(processMouse);
+  glutMotionFunc(processMouseActiveMotion);
+//  glutPassiveMotionFunc(processMousePassiveMotion);
 
   // enter GLUT event processing cycle
   glutMainLoop();
