@@ -108,26 +108,8 @@ static float *parse_new_float(char *str, int params) {
 	return val;
 }
 
-static val_t *parse_new_vertex(char *str_vertex) {
-	val_t *vertex;
-	float *fval_list;
-
-	fval_list = parse_new_float(str_vertex, 3);
-
-	if (fval_list == NULL)
-		return NULL;
-
-	vertex = g_new(val_t, 1);
-	vertex->x = fval_list[0];
-	vertex->y = fval_list[1];
-	vertex->z = fval_list[2];
-	g_free(fval_list);
-
-	return vertex;
-}
-
-static val_t *parse_new_vtexture(char *str) {
-	val_t *vtexture;
+static val_t *parse_new_val_t(char *str) {
+	val_t *v;
 	float *fval_list;
 
 	fval_list = parse_new_float(str, 3);
@@ -135,18 +117,18 @@ static val_t *parse_new_vtexture(char *str) {
 	if (fval_list == NULL)
 		return NULL;
 
-	vtexture = g_new(val_t, 1);
-	vtexture->x = fval_list[0];
-	vtexture->y = fval_list[1];
-	vtexture->z = fval_list[2];
+	v = g_new(val_t, 1);
+	v->x = fval_list[0];
+	v->y = fval_list[1];
+	v->z = fval_list[2];
 	g_free(fval_list);
 
-	return vtexture;
+	return v;
 }
 
 static void parse_line(char *line, model_t *obj) {
 	char *tok, *params;
-	val_t *vertex, *vtexture;
+	val_t *vertex, *vtexture, *normal;
 	face_t *face;
 
 	// TODO: remover espaco no inicio da linha
@@ -154,7 +136,7 @@ static void parse_line(char *line, model_t *obj) {
 
 	if ((g_strcmp0(tok, "v")) == 0) {
 		// VERTEX
-		vertex = parse_new_vertex(params);
+		vertex = parse_new_val_t(params);
 		obj->vertex_list = g_slist_append(obj->vertex_list, vertex);
 	} else if ((g_strcmp0(tok, "f")) == 0) {
 		// FACES
@@ -162,7 +144,12 @@ static void parse_line(char *line, model_t *obj) {
 		obj->face_list = g_slist_append(obj->face_list, face);
 	} else if ((g_strcmp0(tok, "vt")) == 0) {
 		// VERTEX TEXTURE
-		vtexture = parse_new_vtexture(params);
+		vtexture = parse_new_val_t(params);
+		obj->texture_list = g_slist_append(obj->texture_list, vtexture);
+	} else if ((g_strcmp0(tok, "vn")) == 0) {
+		// NORMAL
+		normal = parse_new_val_t(params);
+		obj->texture_list = g_slist_append(obj->texture_list, vtexture);
 	}
 }
 
@@ -182,29 +169,33 @@ static int breakdown(char *buffer, model_t *obj) {
 	return 1;
 }
 
-#if 0
-static void cleanup_faces(model_t *obj) {
+static void cleanup_faces(GSList *face_list) {
 	int i;
 	face_t *face;
 
-	for (i = 0; i < g_slist_length(obj->face_list); i++) {
-		face = g_slist_nth_data(obj->face_list, i);
+	for (i = 0; i < g_slist_length(face_list); i++) {
+		face = g_slist_nth_data(face_list, i);
+    g_free(face->fvertex);
+    g_free(face->ftexture);
+    g_free(face->fnormal);
 		g_free(face);
 	}
-	g_slist_free(obj->face_list);
-	obj->face_list = NULL;
-}
-#endif
-static void cleanup_vertex(model_t *obj) {
-	int i;
-	val_t *vertex;
 
-	for (i = 0; i < g_slist_length(obj->vertex_list); i++) {
-		vertex = g_slist_nth_data(obj->vertex_list, i);
-		g_free(vertex);
+	g_slist_free(face_list);
+	face_list = NULL;
+}
+
+static void cleanup_valt_list(GSList *valt_list) {
+	int i;
+	val_t *v;
+
+	for (i = 0; i < g_slist_length(valt_list); i++) {
+		v = g_slist_nth_data(valt_list, i);
+		g_free(v);
 	}
-	g_slist_free(obj->vertex_list);
-	obj->vertex_list = NULL;
+
+	g_slist_free(valt_list);
+	valt_list = NULL;
 }
 
 model_t *load_new_obj(char *file) {
@@ -248,9 +239,10 @@ val_t *get_vertex(int index, model_t *obj) {
 }
 
 void release_obj(model_t *obj) {
-	cleanup_vertex(obj);
-//	cleanup_faces(obj);
-
+	cleanup_valt_list(obj->vertex_list);
+	cleanup_valt_list(obj->texture_list);
+	cleanup_valt_list(obj->normal_list);
+	cleanup_faces(obj->face_list);
   g_free(obj);
 }
 

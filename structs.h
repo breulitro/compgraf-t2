@@ -19,36 +19,6 @@ typedef struct {
 	GSList *animations;
 } actor_t;
 
-// OBJ
-typedef struct {
-	int *fvertex;
-  int fvertex_size;
-
-  int *ftexture;
-  int ftexture_size;
-
-  int *fnormal;
-  int fnormal_size;
-} face_t;
-
-
-
-#if 0
-typedef struct _ObjModel {
-	int NumVertex;
-	int NumNormal;
-	int NumTexCoord;
-	int NumTriangle;
-
-	ObjVertex *VertexArray;
-	ObjNormal *NormalArray;
-	ObjTexCoord *TexCoordArray;
-
-	ObjTriangle *TriangleArray;
-} ObjModel;
-#endif
-
-
 void dump_val(val_t *v);
 void dump_val_int(val_t *v);
 void dump_animation(animation_t *a);
