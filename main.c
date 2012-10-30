@@ -98,6 +98,27 @@ void desenhaChao() {
 	glLineWidth(1);
 }
 
+void plot_face(val_t *f, GSList *lv) {
+  val_t *v1, *v2, *v3;
+  v1 = g_slist_nth_data(lv, (int)f->x);
+  v2 = g_slist_nth_data(lv, (int)f->y);
+  v3 = g_slist_nth_data(lv, (int)f->z);
+    glVertex3f(v1->x, v1->y, v1->z);
+    glVertex3f(v2->x, v2->y, v2->z);
+    glVertex3f(v3->x, v3->y, v3->z);
+}
+
+GHashTable *obj = NULL;
+void plot_obj() {
+  GSList *lv = g_hash_table_lookup(obj, "vertices");
+  GSList *lf = g_hash_table_lookup(obj, "faces");
+  g_slist_foreach(lf, (GFunc)plot_face, lv);
+}
+
+val_t olho = {80, 80, 80},
+      foco = {9, -17, -1},
+      normal = {0, 1, 0};
+
 void renderScene(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	desenhaChao();
@@ -106,17 +127,17 @@ void renderScene(void) {
 	glLoadIdentity();
 
 	// Set the camera
-	gluLookAt(0.0f, 0.0f, 10.0f, 0.0f, 0.0f,  0.0f, 0.0f, 1.0f, 0.0f);
 
-	glRotatef(angle, 0.0f, 1.0f, 0.0f);
-
+//	glRotatef(angle, 0.0f, 1.0f, 0.0f);
 	glColor3f(red, green, blue);
+  gluLookAt(olho.x, olho.y, olho.z,
+            foco.x, foco.y, foco.z,
+            normal.x, normal.y, normal.z);
 
-	glBegin(GL_TRIANGLES);
-	glVertex3f(-1.0f,-2.0f, 0.0f);
-	glVertex3f( 2.0f, 0.0f, 0.0);
-	glVertex3f( 0.0f, 2.0f, 0.0);
-	glEnd();
+  glBegin(GL_TRIANGLES);
+  plot_obj();
+  glEnd();
+
 
 	glutSwapBuffers();
 }
@@ -135,13 +156,9 @@ int main(int argc, char **argv) {
 	printf("script loaded\n");
 
 	dump_actors();
-	GHashTable *obj = read_obj("yoda.obj");
+	obj = read_obj("yoda.obj");
 	dump_hash(obj);
 
-	//	g_hash_table_foreach(obj, 
-	//  l = interpolate(l);
-	//GLModel *glm = glmReadObj("yoda.obj");
-	// init GLUT and create window
 	glutInit(&argc, argv);
 	//-1 == default
 	glutInitWindowPosition(100, 100);

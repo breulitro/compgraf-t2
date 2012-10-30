@@ -37,28 +37,17 @@ GHashTable *read_obj(char *file) {
  	GSList *faces = NULL;
 
 	f = fopen(file, "r");
-	if (!f) {
+
+  if (!f) {
 		perror("fopen");
 		exit(1);
 	}
-	int i = 0;
-	objfile = malloc(1);
-	do {
-		memset(buf, 0, 80);
-		rb = fread(buf, 80, 1, f);
-		if (!rb && ferror(f)) {
-			perror("error reading file\n");
-			break;
-		} else if (rb < 80)
-			objfile = realloc(objfile, strlen(buf) + strlen(objfile));
-		else
-			objfile = realloc(objfile, strlen(objfile) + 80);
 
-		strncpy(&objfile[i], buf, (rb < 80) ? strlen(buf) : 80);
-
-		i += (rb < 80) ? strlen(buf) : 80;
-		objfile[i] = '\0';
-	} while (!feof(f));
+  fseek(f, 0, SEEK_END);
+  rb = ftell(f);
+  rewind(f);
+  objfile = malloc(rb);
+  fread(objfile, rb, 1, f);
 	fclose(f);
 
 	char *tok = strtok(objfile, "\n");
@@ -84,9 +73,9 @@ GHashTable *read_obj(char *file) {
 		if (tok[0] == 'f') {
 			v = g_new(val_t, 1);
 			sscanf(tok, "%c %d %d %d", &trash, &av[0], &av[1], &av[2]);
-      v->x = av[0];
-      v->y = av[1];
-      v->z = av[2];
+      v->x = av[0] - 1;
+      v->y = av[1] - 1;
+      v->z = av[2] - 1;
 			faces = g_slist_append(faces, v);
 		}
 
