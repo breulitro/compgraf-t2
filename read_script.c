@@ -169,6 +169,7 @@ GSList *read_script(char *file) {
   size_t rb;
   int i;
 
+  actors = NULL;
   if (file == NULL) {
     return NULL;
   }

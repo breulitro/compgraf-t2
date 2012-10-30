@@ -11,6 +11,10 @@
 float red = 1.0f, blue = 1.0f, green = 1.0f;
 float angle = 0.0;
 
+val_t olho = {80, 80, 80},
+      foco = {9, -17, -1},
+      normal = {0, 1, 0};
+
 void changeSize(int w, int h) {
 	float ratio;
 
@@ -37,8 +41,39 @@ void changeSize(int w, int h) {
 }
 
 void processNormalKeys(unsigned char key, int x, int y) {
-	if (key == 27)
-		exit(0);
+  if (glutGetModifiers() == GLUT_ACTIVE_CTRL) {
+    switch (key) {
+      case 'a':
+        olho.x -= 10;
+        break;
+      case 'd':
+        olho.x += 10;
+        break;
+      case 's':
+        olho.z +=10;
+        break;
+      case 'w':
+        olho.z -=10;
+        break;
+    }
+  } else {
+    switch (key) {
+      case 27:
+        exit(0);
+      case 'a':
+        olho.x -= 10;
+        break;
+      case 'd':
+        olho.x += 10;
+        break;
+      case 's':
+        olho.z +=10;
+        break;
+      case 'w':
+        olho.z -=10;
+        break;
+    }
+  }
 }
 
 void processSpecialKeys(int key, int x, int y) {
@@ -103,21 +138,19 @@ void plot_face(val_t *f, GSList *lv) {
   v1 = g_slist_nth_data(lv, (int)f->x);
   v2 = g_slist_nth_data(lv, (int)f->y);
   v3 = g_slist_nth_data(lv, (int)f->z);
-    glVertex3f(v1->x, v1->y, v1->z);
-    glVertex3f(v2->x, v2->y, v2->z);
-    glVertex3f(v3->x, v3->y, v3->z);
+  glVertex3f(v1->x, v1->y, v1->z);
+  glVertex3f(v2->x, v2->y, v2->z);
+  glVertex3f(v3->x, v3->y, v3->z);
 }
 
-GHashTable *obj = NULL;
-void plot_obj() {
+void plot_obj(GHashTable *obj) {
   GSList *lv = g_hash_table_lookup(obj, "vertices");
   GSList *lf = g_hash_table_lookup(obj, "faces");
   g_slist_foreach(lf, (GFunc)plot_face, lv);
 }
 
-val_t olho = {80, 80, 80},
-      foco = {9, -17, -1},
-      normal = {0, 1, 0};
+GSList *actors_list = NULL;
+GSList *obj_list = NULL;
 
 void renderScene(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -135,29 +168,34 @@ void renderScene(void) {
             normal.x, normal.y, normal.z);
 
   glBegin(GL_TRIANGLES);
-  plot_obj();
+  g_slist_foreach(obj_list, (GFunc)plot_obj, NULL);
   glEnd();
 
 
 	glutSwapBuffers();
 }
 
+void load_obj(actor_t *a) {
+  printf("Loading %s\n", a->file);
+  GHashTable *obj = read_obj(a->file);
+  obj_list = g_slist_append(obj_list, obj);
+}
+
 int main(int argc, char **argv) {
+  GHashTable *obj;
 
 	if (argc < 2) {
 		printf("usage: %s <script file> [glut params]\n", argv[0]);
 		return 1;
 	}
 
-	GSList *actors = read_script(argv[1]);
+	actors_list = read_script(argv[1]);
 	//FIXME: argv[0] que vai pro glutInit não é o nome do programa
 	argv++;
 	argc--;
 	printf("script loaded\n");
 
-	dump_actors();
-	obj = read_obj("yoda.obj");
-	dump_hash(obj);
+  g_slist_foreach(actors_list, (GFunc)load_obj, NULL);
 
 	glutInit(&argc, argv);
 	//-1 == default
