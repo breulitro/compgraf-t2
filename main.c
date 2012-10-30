@@ -5,6 +5,7 @@
 #include "structs.h"
 #include "read_script.h"
 #include "read_obj.h"
+#include "load_obj.h"
 
 // all variables initialized to 1.0, meaning
 // the triangle will initially be white
@@ -142,20 +143,25 @@ void desenhaChao() {
 	glLineWidth(1);
 }
 
-void plot_face(val_t *f, GSList *lv) {
-  val_t *v1, *v2, *v3;
-  v1 = g_slist_nth_data(lv, (int)f->x);
-  v2 = g_slist_nth_data(lv, (int)f->y);
-  v3 = g_slist_nth_data(lv, (int)f->z);
-  glVertex3f(v1->x, v1->y, v1->z);
-  glVertex3f(v2->x, v2->y, v2->z);
-  glVertex3f(v3->x, v3->y, v3->z);
+void draw_vertex(val_t *vertex) {
+  glVertex3f(vertex->x, vertex->y, vertex->z);
 }
 
-void plot_obj(GHashTable *obj) {
-  GSList *lv = g_hash_table_lookup(obj, "vertices");
-  GSList *lf = g_hash_table_lookup(obj, "faces");
-  g_slist_foreach(lf, (GFunc)plot_face, lv);
+void plot_obj(model_t *obj) {
+  face_t *face;
+  val_t *vertex;
+  GSList *aux;
+  int i;
+
+  aux = obj->face_list;
+  while ((aux = g_slist_next(aux)) != NULL) {
+    face = (face_t *)aux->data;
+    for (i = 0; i < face->face_size; i++) {
+      vertex = get_vertex(face->faces[i], obj);
+      draw_vertex(get_vertex(face->faces[i], obj));
+    }
+    printf("\n");
+  }
 }
 
 GSList *actors_list = NULL;
@@ -189,9 +195,12 @@ void renderScene(void) {
 }
 
 void load_obj(actor_t *a) {
+  model_t *obj;
+
   printf("Loading %s\n", a->file);
-  GHashTable *obj = read_obj(a->file);
+  obj = load_new_obj(a->file);
   obj_list = g_slist_append(obj_list, obj);
+
   //TODO: Criar uma lista de objs aqui ou calcular on the fly na renderScene?
 }
 

@@ -21,7 +21,8 @@ typedef struct {
 
 // OBJ
 typedef struct {
-	int x, y, z;
+	int *faces;
+  int face_size;
 } face_t;
 
 
