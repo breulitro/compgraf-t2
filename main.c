@@ -9,12 +9,15 @@
 // all variables initialized to 1.0, meaning
 // the triangle will initially be white
 float red = 1.0f, blue = 1.0f, green = 1.0f;
-float angle = 0.0;
+float xangle = 0.0, yangle = 0.0, zangle = 0.0;
 
-val_t olho = {80, 80, 80},
+val_t olho = {0, 10, 0},
+      foco = {0, 10, 0},
+      normal = {0, 1, 0};
+/*val_t olho = {80, 80, 80},
       foco = {9, -17, -1},
       normal = {0, 1, 0};
-
+*/
 void changeSize(int w, int h) {
 	float ratio;
 
@@ -102,11 +105,17 @@ void processSpecialKeys(int key, int x, int y) {
 			blue = 1.0;
 			break;
 		case GLUT_KEY_LEFT:
-			angle += .5;
+			yangle += .5;
 			break;
 		case GLUT_KEY_RIGHT:
-			angle -= .5;
+			yangle -= .5;
 			break;
+    case GLUT_KEY_UP:
+      xangle += .5;
+      break;
+    case GLUT_KEY_DOWN:
+      xangle -= .5;
+      break;
 	}
 }
 
@@ -167,6 +176,10 @@ void renderScene(void) {
             foco.x, foco.y, foco.z,
             normal.x, normal.y, normal.z);
 
+  glRotatef(xangle, 1, 0, 0);
+  glRotatef(yangle, 0, 1, 0);
+  glRotatef(zangle, 0, 0, 1);
+
   glBegin(GL_TRIANGLES);
   g_slist_foreach(obj_list, (GFunc)plot_obj, NULL);
   glEnd();
@@ -179,6 +192,7 @@ void load_obj(actor_t *a) {
   printf("Loading %s\n", a->file);
   GHashTable *obj = read_obj(a->file);
   obj_list = g_slist_append(obj_list, obj);
+  //TODO: Criar uma lista de objs aqui ou calcular on the fly na renderScene?
 }
 
 int main(int argc, char **argv) {
