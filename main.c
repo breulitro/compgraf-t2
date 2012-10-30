@@ -149,18 +149,17 @@ void draw_vertex(val_t *vertex) {
 
 void plot_obj(model_t *obj) {
   face_t *face;
-  val_t *vertex;
+  val_t *v;
   GSList *aux;
   int i;
 
   aux = obj->face_list;
   while ((aux = g_slist_next(aux)) != NULL) {
     face = (face_t *)aux->data;
-    for (i = 0; i < face->face_size; i++) {
-      vertex = get_vertex(face->faces[i], obj);
-      draw_vertex(get_vertex(face->faces[i], obj));
+    for (i = 0; i < face->fvertex_size; i++) {
+      v = get_vertex(face->fvertex[i], obj);
+      draw_vertex(v);
     }
-    printf("\n");
   }
 }
 
