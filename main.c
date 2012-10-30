@@ -4,7 +4,6 @@
 
 #include "structs.h"
 #include "read_script.h"
-#include "read_obj.h"
 #include "load_obj.h"
 
 // all variables initialized to 1.0, meaning
