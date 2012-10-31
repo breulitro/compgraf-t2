@@ -39,6 +39,8 @@ typedef struct _ObjModel {
 #endif
 
 
-
 model_t *load_new_obj(char *file);
 val_t *get_vertex(int index, model_t *obj);
+val_t *get_texture(int index, model_t *obj);
+val_t *get_normal(int index, model_t *obj);
+

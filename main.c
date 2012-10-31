@@ -142,8 +142,21 @@ void desenhaChao() {
 	glLineWidth(1);
 }
 
-void draw_vertex(val_t *vertex) {
-  glVertex3f(vertex->x, vertex->y, vertex->z);
+void texturize() {
+#if 0
+  GLuint texture;
+
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 13);
+  #endif
 }
 
 void plot_obj(model_t *obj) {
@@ -157,7 +170,15 @@ void plot_obj(model_t *obj) {
     face = (face_t *)aux->data;
     for (i = 0; i < face->fvertex_size; i++) {
       v = get_vertex(face->fvertex[i], obj);
-      draw_vertex(v);
+      glVertex3f(v->x, v->y, v->z);
+    }
+    for (i = 0; i < face->ftexture_size; i++) {
+      v = get_texture(face->ftexture[i], obj);
+      glTexCoord3f(v->x, v->y, v->z);
+    }
+    for (i = 0; i < face->fnormal_size; i++) {
+      v = get_normal(face->fnormal[i], obj);
+      glNormal3f(v->x, v->y, v->z);
     }
   }
 }

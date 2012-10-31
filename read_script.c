@@ -136,13 +136,10 @@ void parser(char *token) {
 
   // actor
   if ((tok = strstr(token, "id_actor")) != NULL) {
-  //  printf("ACTOR!!\n");
     parse_actor(tok);
-	//	printf("ator.length =%d\n", g_slist_length(actors));
   }
   // animation
   if ((tok = strstr(token, "Frame")) != NULL) {
-//    printf("ANIMAE!!\n");
     parse_animation(tok);
   }
 }
@@ -194,8 +191,6 @@ GSList *read_script(char *file) {
     script[i] = '\0';
   } while (!feof(f));
   fclose(f);
-
-  //printf("%s\n", script);
 
   char *tok;
   //scene_t s;

@@ -149,7 +149,7 @@ static void parse_line(char *line, model_t *obj) {
 	} else if ((g_strcmp0(tok, "vn")) == 0) {
 		// NORMAL
 		normal = parse_new_val_t(params);
-		obj->texture_list = g_slist_append(obj->texture_list, vtexture);
+		obj->normal_list = g_slist_append(obj->normal_list, normal);
 	}
 }
 
@@ -223,9 +223,10 @@ model_t *load_new_obj(char *file) {
 	file_buffer = malloc(sizeof(char) * size);
 	memset(file_buffer, 0, size);
 	fread(file_buffer, size, 1, fp);
+
   obj = g_new(model_t, 1);
-  obj->vertex_list = NULL;
-  obj->face_list = NULL;
+  memset(obj, 0, sizeof(model_t));
+
 	breakdown(file_buffer, obj);
 	g_free(file_buffer);
 	fclose(fp);
@@ -236,6 +237,16 @@ model_t *load_new_obj(char *file) {
 val_t *get_vertex(int index, model_t *obj) {
   // index - 1 já que faces indexa começando em 1 e nao em 0
 	return g_slist_nth_data(obj->vertex_list, index - 1);
+}
+
+val_t *get_texture(int index, model_t *obj) {
+  // index - 1 já que faces indexa começando em 1 e nao em 0
+	return g_slist_nth_data(obj->texture_list, index - 1);
+}
+
+val_t *get_normal(int index, model_t *obj) {
+  // index - 1 já que faces indexa começando em 1 e nao em 0
+	return g_slist_nth_data(obj->normal_list, index - 1);
 }
 
 void release_obj(model_t *obj) {
@@ -254,16 +265,16 @@ int main() {
   model_t *obj;
   GSList *aux;
 
-	//obj = load_new_obj("Clementine.obj");
-	obj = load_new_obj("cube.obj");
+	obj = load_new_obj("Clementine.obj");
+	//obj = load_new_obj("cube.obj");
 
-#if 0
-	for (i = 0; i < g_slist_length(obj->vertex_list); i++) {
-		v = g_slist_nth_data(obj->vertex_list, i);
+  printf("Size: %d\n", g_slist_length(obj->texture_list));
+	for (i = 0; i < g_slist_length(obj->texture_list); i++) {
+		v = g_slist_nth_data(obj->texture_list, i);
 		printf("%f %f %f\n", v->x, v->y, v->z);
 	}
-#endif
 
+#if 0
   aux = obj->face_list;
   while ((aux = g_slist_next(aux)) != NULL) {
     f = (face_t *)aux->data;
@@ -279,6 +290,7 @@ int main() {
     //printf("\n");
   }
 
+#endif
   release_obj(obj);
 
 	return 0;
