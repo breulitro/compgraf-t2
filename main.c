@@ -174,6 +174,16 @@ void plot_obj(model_t *obj, animation_t *anim) {
     glTranslatef(v->x, v->y, v->z);
   }
 
+  v = anim->scale;
+  if (v != NULL) {
+    glScalef(v->x, v->y, v->z);
+  }
+
+  v = anim->rot;
+  if (v != NULL) {
+    glRotatef(v->x, 0, 1, 0);
+  }
+
   //glTranslatef(100, 0, 0);
 //  glScalef(20, 20, 20);
   aux = obj->face_list;
@@ -219,6 +229,7 @@ void renderScene(void) {
 
 //	glRotatef(angle, 0.0f, 1.0f, 0.0f);
 	glColor3f(red, green, blue);
+
   gluLookAt(olho.x, olho.y, olho.z,
             foco.x, foco.y, foco.z,
             normal.x, normal.y, normal.z);
