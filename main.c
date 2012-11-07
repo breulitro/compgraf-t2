@@ -159,14 +159,27 @@ void texturize() {
   #endif
 }
 
-void plot_obj(model_t *obj) {
+void plot_obj(model_t *obj, animation_t *anim) {
   face_t *face;
   val_t *v;
   GSList *aux;
   int i;
 
+  if (anim == NULL)
+    return;
+  dump_animation(anim);
+
+  v = anim->trans;
+  if (v != NULL) {
+    glTranslatef(v->x, v->y, v->z);
+  }
+
+  //glTranslatef(100, 0, 0);
+//  glScalef(20, 20, 20);
   aux = obj->face_list;
+  glBegin(GL_TRIANGLES);
   while ((aux = g_slist_next(aux)) != NULL) {
+ 
     face = (face_t *)aux->data;
     for (i = 0; i < face->fvertex_size; i++) {
       v = get_vertex(face->fvertex[i], obj);
@@ -181,11 +194,21 @@ void plot_obj(model_t *obj) {
       glNormal3f(v->x, v->y, v->z);
     }
   }
+  glEnd();
+}
+
+void plot_actor(actor_t *a, int *frame_atual) {
+  plot_obj(a->obj, g_slist_nth_data(a->animations, *frame_atual));
 }
 
 GSList *actors_list = NULL;
 
 void renderScene(void) {
+  static int frame_atual;
+  static int framerate;
+
+  frame_atual += !(++framerate % 30);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	desenhaChao();
 
@@ -204,18 +227,14 @@ void renderScene(void) {
   glRotatef(yangle, 0, 1, 0);
   glRotatef(zangle, 0, 0, 1);
 
-  glBegin(GL_TRIANGLES);
-  g_slist_foreach(actors_list, (GFunc)plot_obj, NULL);
-  glEnd();
+
+  g_slist_foreach(actors_list, (GFunc)plot_actor, &frame_atual);
 
 
 	glutSwapBuffers();
 }
 
-// cada nodo corresponde a uma chamada na renderScene()?
-// como que controla o frame rate?
 GSList *animation_list_linear = NULL;
-
 
 /**
   * trans: val_t a ser dividido
@@ -231,9 +250,15 @@ val_t *divide_val(val_t *val, int divisor, int n) {
 
   v = malloc(sizeof(val_t));
   //uma hora n == divisor
-  v->x = val->x / (n / divisor);
-  v->y = val->y / (n / divisor);
-  v->z = val->z / (n / divisor);
+  if (n == 0) {
+    v->x = val->x;
+    v->y = val->y;
+    v->z = val->z;
+  } else {
+    v->x = val->x / ((float)n / divisor);
+    v->y = val->y / ((float)n / divisor);
+    v->z = val->z / ((float)n / divisor);
+  }
 
   return v;
 }
@@ -253,14 +278,20 @@ void delta_func(animation_t *a, animation_t **i) {
     aux = *i;
     delta = a->frame - aux->frame;
     //'c' nunca vai começar em 1
+#ifdef DBG
     printf("Iterando de %d a %d\n", aux->frame, a->frame);
+#endif
     for (c = aux->frame; c <= a->frame; c++) {
+#ifdef DBG
       printf("Iteracao: %d\n", c);
+#endif
       anim = malloc(sizeof(animation_t));
       anim->frame = c;
       anim->trans = divide_val(a->trans, delta, (c - aux->frame));
       anim->scale = divide_val(a->scale, delta, (c - aux->frame));
       anim->rot = divide_val(a->rot, delta, (c - aux->frame));
+
+      animation_list_linear = g_slist_append(animation_list_linear, anim);
     }
   } else {
     //Essa animação começa só no frame a->frame, então bota nulo nos frames
@@ -272,6 +303,11 @@ void delta_func(animation_t *a, animation_t **i) {
   *i = a;
 }
 
+void free_val_t(val_t *v) {
+  if (v != NULL)
+    free(v);
+}
+
 void load_obj(actor_t *a) {
   animation_t *inicial = NULL;
 
@@ -280,6 +316,12 @@ void load_obj(actor_t *a) {
 
   animation_list_linear = NULL;
   g_slist_foreach(a->animations, (GFunc)delta_func, &inicial);
+
+  g_slist_foreach(a->animations, (GFunc)free_val_t, NULL);
+  g_slist_free(a->animations);
+
+  g_slist_foreach(animation_list_linear, (GFunc)dump_animation, NULL);
+  a->animations = animation_list_linear;
 }
 
 int main(int argc, char **argv) {
