@@ -212,9 +212,36 @@ void renderScene(void) {
 	glutSwapBuffers();
 }
 
+// cada nodo corresponde a uma chamada na renderScene()?
+// como que controla o frame rate?
 GSList *animation_list_linear = NULL;
 
+
+/**
+  * trans: val_t a ser dividido
+  * dividor: por quanto vai ser dividido
+  * n: qual momento tu quer a transformacao
+  */
+
+val_t *divide_val(val_t *val, int divisor, int n) {
+  val_t *v;
+
+  if (val == NULL)
+    return NULL;
+
+  v = malloc(sizeof(val_t));
+  //uma hora n == divisor
+  v->x = val->x / (n / divisor);
+  v->y = val->y / (n / divisor);
+  v->z = val->z / (n / divisor);
+
+  return v;
+}
+
 void delta_func(animation_t *a, animation_t **i) {
+  int c, delta;
+  animation_t *anim, *aux;
+  val_t *val;
 
   if (*i != NULL) {
     printf("INICIAL:");
@@ -222,6 +249,24 @@ void delta_func(animation_t *a, animation_t **i) {
     printf("FINAL:");
     dump_animation(a);
     printf("=========\n");
+
+    aux = *i;
+    delta = a->frame - aux->frame;
+    //'c' nunca vai começar em 1
+    printf("Iterando de %d a %d\n", aux->frame, a->frame);
+    for (c = aux->frame; c <= a->frame; c++) {
+      printf("Iteracao: %d\n", c);
+      anim = malloc(sizeof(animation_t));
+      anim->frame = c;
+      anim->trans = divide_val(a->trans, delta, (c - aux->frame));
+      anim->scale = divide_val(a->scale, delta, (c - aux->frame));
+      anim->rot = divide_val(a->rot, delta, (c - aux->frame));
+    }
+  } else {
+    //Essa animação começa só no frame a->frame, então bota nulo nos frames
+    //iniciais
+    for (c = 1; c <= a->frame; c++)
+      animation_list_linear = g_slist_append(animation_list_linear, NULL);
   }
 
   *i = a;
@@ -232,6 +277,8 @@ void load_obj(actor_t *a) {
 
   printf("Loading %s\n", a->file);
   a->obj = load_new_obj(a->file);
+
+  animation_list_linear = NULL;
   g_slist_foreach(a->animations, (GFunc)delta_func, &inicial);
 }
 
