@@ -11,7 +11,7 @@
 float red = 1.0f, blue = 1.0f, green = 1.0f;
 float xangle = 0.0, yangle = 0.0, zangle = 0.0;
 
-val_t olho = {0, 10, 0},
+val_t olho = {-20, 10, -100},
       foco = {0, 10, 0},
       normal = {0, 1, 0};
 /*val_t olho = {80, 80, 80},
