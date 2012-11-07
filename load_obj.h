@@ -1,6 +1,11 @@
+#ifndef _LOAD_OBJ_
+#define _LOAD_OBJ_
+
 #include <glib.h>
 
-#include "structs.h"
+typedef struct {
+	float x, y, z;
+} val_t;
 
 typedef struct {
   GSList *vertex_list;
@@ -44,3 +49,4 @@ val_t *get_vertex(int index, model_t *obj);
 val_t *get_texture(int index, model_t *obj);
 val_t *get_normal(int index, model_t *obj);
 
+#endif

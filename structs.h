@@ -2,9 +2,7 @@
 #define _FOO_
 #include <glib.h>
 
-typedef struct {
-	float x, y, z;
-} val_t;
+#include "load_obj.h"
 
 typedef struct {
 	int frame;
@@ -17,6 +15,7 @@ typedef struct {
 	int id;
 	char *file;
 	GSList *animations;
+  model_t *obj;
 } actor_t;
 
 void dump_val(val_t *v);

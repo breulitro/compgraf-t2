@@ -184,7 +184,6 @@ void plot_obj(model_t *obj) {
 }
 
 GSList *actors_list = NULL;
-GSList *obj_list = NULL;
 
 void renderScene(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -206,21 +205,34 @@ void renderScene(void) {
   glRotatef(zangle, 0, 0, 1);
 
   glBegin(GL_TRIANGLES);
-  g_slist_foreach(obj_list, (GFunc)plot_obj, NULL);
+  g_slist_foreach(actors_list, (GFunc)plot_obj, NULL);
   glEnd();
 
 
 	glutSwapBuffers();
 }
 
+GSList *animation_list_linear = NULL;
+
+void delta_func(animation_t *a, animation_t **i) {
+
+  if (*i != NULL) {
+    printf("INICIAL:");
+    dump_animation(*i);
+    printf("FINAL:");
+    dump_animation(a);
+    printf("=========\n");
+  }
+
+  *i = a;
+}
+
 void load_obj(actor_t *a) {
-  model_t *obj;
+  animation_t *inicial = NULL;
 
   printf("Loading %s\n", a->file);
-  obj = load_new_obj(a->file);
-  obj_list = g_slist_append(obj_list, obj);
-
-  //TODO: Criar uma lista de objs aqui ou calcular on the fly na renderScene?
+  a->obj = load_new_obj(a->file);
+  g_slist_foreach(a->animations, (GFunc)delta_func, &inicial);
 }
 
 int main(int argc, char **argv) {
