@@ -181,7 +181,7 @@ void plot_obj(model_t *obj, animation_t *anim) {
 
   v = anim->rot;
   if (v != NULL) {
-    glRotatef(v->x, 0, 1, 0);
+    glRotatef(v->y, 0, 1, 0);
   }
 
   //glTranslatef(100, 0, 0);
