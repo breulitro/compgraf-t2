@@ -1,16 +1,10 @@
 #include <stdio.h>
 #include <GL/glut.h>
 #include <glib.h>
-/*
 #include "structs.h"
 #include "read_script.h"
-<<<<<<< HEAD
 #include "load_obj.h"
 
-=======
-#include "read_obj.h"
-*/
->>>>>>> motion_control
 // all variables initialized to 1.0, meaning
 // the triangle will initially be white
 float red = 1.0f, blue = 1.0f, green = 1.0f;
@@ -50,43 +44,35 @@ void changeSize(int w, int h) {
 
 void processNormalKeys(unsigned char key, int x, int y) {
   if (glutGetModifiers() == GLUT_ACTIVE_CTRL) {
-    switch (key) {
-      case 'a':
-        olho.x -= 10;
-        break;
-      case 'd':
-        olho.x += 10;
-        break;
-      case 's':
-        olho.z +=10;
-        break;
-      case 'w':
-        olho.z -=10;
-        break;
-    }
+    printf("GLUT_ACTIVE_CTRL: %c\n", key);// não entendi como funciona isso
   } else {
     switch (key) {
-      case 27:
+      case 0x27:
         exit(0);
       case 'a':
-        olho.x -= 10;
+        //xangle += .5;
+        foco.x += 10;
         break;
       case 'd':
-        olho.x += 10;
+        //yangle -= .5;
+        foco.z -= 10;
         break;
       case 's':
-        olho.z +=10;
+        //xangle -= .5;
+        foco.x -= 10;
         break;
       case 'w':
-        olho.z -=10;
+        //yangle += .5;
+        foco.z += 10;
         break;
+
     }
   }
 }
 
 void processSpecialKeys(int key, int x, int y) {
 	int mod;
-
+ 
 	switch(key) {
 		case GLUT_KEY_F1 :
 			mod = glutGetModifiers();
@@ -110,16 +96,16 @@ void processSpecialKeys(int key, int x, int y) {
 			blue = 1.0;
 			break;
 		case GLUT_KEY_LEFT:
-			yangle += .5;
+        olho.z -=10;
 			break;
 		case GLUT_KEY_RIGHT:
-			yangle -= .5;
+        olho.x += 10;
 			break;
     case GLUT_KEY_UP:
-      xangle += .5;
+        olho.x -= 10;
       break;
     case GLUT_KEY_DOWN:
-      xangle -= .5;
+        olho.z +=10;
       break;
 	}
 }
@@ -134,7 +120,6 @@ void desenhaChao() {
 	glColor3f(0, 0, 1);
 	glLineWidth(1);
 	glBegin(GL_LINES);
-<<<<<<< HEAD
 
 	for(z =- 1000; z <= 1000; z += 10) {
 		glVertex3f(-1000, -0.1f, z);
@@ -143,17 +128,6 @@ void desenhaChao() {
 	for(x =- 1000; x <= 1000; x += 10) {
 		glVertex3f(x, -0.1f, -1000);
 		glVertex3f(x, -0.1f, 1000);
-=======
-	for(float z=-1000; z<=1000; z+=.1)
-	{
-		glVertex3f(-1000,-0.1f,z);
-		glVertex3f( 1000,-0.1f,z);
-	}
-	for(float x=-1000; x<=1000; x+=.1)
-	{
-		glVertex3f(x,-0.1f,-1000);
-		glVertex3f(x,-0.1f,1000);
->>>>>>> motion_control
 	}
 	glEnd();
 	glLineWidth(1);
@@ -228,7 +202,6 @@ void plot_actor(actor_t *a, int *frame_atual) {
   plot_obj(a->obj, g_slist_nth_data(a->animations, *frame_atual));
 }
 
-<<<<<<< HEAD
 GSList *actors_list = NULL;
 
 void renderScene(void) {
@@ -252,14 +225,16 @@ void renderScene(void) {
             foco.x, foco.y, foco.z,
             normal.x, normal.y, normal.z);
 
-  glRotatef(xangle, 1, 0, 0);
-  glRotatef(yangle, 0, 1, 0);
-  glRotatef(zangle, 0, 0, 1);
+//  glRotatef(xangle, 1, 0, 0);
+//  glRotatef(yangle, 0, 1, 0);
+//  glRotatef(zangle, 0, 0, 1);
 
 
   g_slist_foreach(actors_list, (GFunc)plot_actor, &frame_atual);
 
-=======
+	glutSwapBuffers();
+}
+
 void processMousePassiveMotion(int x, int y) {
   printf("%s: x=%d y =%d\n", __func__, x, y);
 }
@@ -277,12 +252,6 @@ void processMouse(int bt, int state, int x, int y) {
     else if (bt == GLUT_MIDDLE_BUTTON)
       printf("%s:Middle click @ x=%d y =%d\n", __func__, x, y);
 
-}
-
-int main(int argc, char **argv) {
->>>>>>> motion_control
-
-	glutSwapBuffers();
 }
 
 GSList *animation_list_linear = NULL;
@@ -405,6 +374,10 @@ int main(int argc, char **argv) {
 	glutKeyboardFunc(processNormalKeys);
 	glutSpecialFunc(processSpecialKeys);
 
-	// enter GLUT event processing cycle
-	glutMainLoop();
+  glutMouseFunc(processMouse);
+  glutMotionFunc(processMouseActiveMotion);
+//  glutPassiveMotionFunc(processMousePassiveMotion);
+
+  // enter GLUT event processing cycle
+  glutMainLoop();
 }
