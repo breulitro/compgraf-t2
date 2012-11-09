@@ -1,11 +1,16 @@
 #include <stdio.h>
 #include <GL/glut.h>
 #include <glib.h>
-
+/*
 #include "structs.h"
 #include "read_script.h"
+<<<<<<< HEAD
 #include "load_obj.h"
 
+=======
+#include "read_obj.h"
+*/
+>>>>>>> motion_control
 // all variables initialized to 1.0, meaning
 // the triangle will initially be white
 float red = 1.0f, blue = 1.0f, green = 1.0f;
@@ -129,6 +134,7 @@ void desenhaChao() {
 	glColor3f(0, 0, 1);
 	glLineWidth(1);
 	glBegin(GL_LINES);
+<<<<<<< HEAD
 
 	for(z =- 1000; z <= 1000; z += 10) {
 		glVertex3f(-1000, -0.1f, z);
@@ -137,6 +143,17 @@ void desenhaChao() {
 	for(x =- 1000; x <= 1000; x += 10) {
 		glVertex3f(x, -0.1f, -1000);
 		glVertex3f(x, -0.1f, 1000);
+=======
+	for(float z=-1000; z<=1000; z+=.1)
+	{
+		glVertex3f(-1000,-0.1f,z);
+		glVertex3f( 1000,-0.1f,z);
+	}
+	for(float x=-1000; x<=1000; x+=.1)
+	{
+		glVertex3f(x,-0.1f,-1000);
+		glVertex3f(x,-0.1f,1000);
+>>>>>>> motion_control
 	}
 	glEnd();
 	glLineWidth(1);
@@ -211,6 +228,7 @@ void plot_actor(actor_t *a, int *frame_atual) {
   plot_obj(a->obj, g_slist_nth_data(a->animations, *frame_atual));
 }
 
+<<<<<<< HEAD
 GSList *actors_list = NULL;
 
 void renderScene(void) {
@@ -241,6 +259,28 @@ void renderScene(void) {
 
   g_slist_foreach(actors_list, (GFunc)plot_actor, &frame_atual);
 
+=======
+void processMousePassiveMotion(int x, int y) {
+  printf("%s: x=%d y =%d\n", __func__, x, y);
+}
+
+void processMouseActiveMotion(int x, int y) {
+  printf("%s: x=%d y =%d\n", __func__, x, y);
+}
+
+void processMouse(int bt, int state, int x, int y) {
+  if (state == GLUT_DOWN)
+    if (bt == GLUT_LEFT_BUTTON)
+      printf("%s:Left click @ x=%d y =%d\n", __func__, x, y);
+    else if (bt == GLUT_RIGHT_BUTTON)
+      printf("%s:Right click @ x=%d y =%d\n", __func__, x, y);
+    else if (bt == GLUT_MIDDLE_BUTTON)
+      printf("%s:Middle click @ x=%d y =%d\n", __func__, x, y);
+
+}
+
+int main(int argc, char **argv) {
+>>>>>>> motion_control
 
 	glutSwapBuffers();
 }
