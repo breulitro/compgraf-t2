@@ -353,7 +353,7 @@ int main(int argc, char **argv) {
 	}
 
 	actors_list = read_script(argv[1]);
-	//FIXME: argv[0] que vai pro glutInit não é o nome do programa
+  argv[1] = argv[0];
 	argv++;
 	argc--;
 	printf("script loaded\n");
