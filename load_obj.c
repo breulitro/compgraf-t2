@@ -36,8 +36,8 @@ static face_t *parse_new_face(char *str) {
 	int *fvertex;
 	int *fnormal;
 	int *ftexture;
-  face_t *f;
-  int vals[3];
+	face_t *f;
+	int vals[3];
 
 	if (str == NULL)
 		return NULL;
@@ -45,42 +45,42 @@ static face_t *parse_new_face(char *str) {
 	ptr = str;
 	i = 0;
 
-  f = g_new(face_t, 1);
-  memset(f, 0, sizeof(face_t));
+	f = g_new(face_t, 1);
+	memset(f, 0, sizeof(face_t));
 
 	while (((tok = strtok_r(ptr, " ", &saveptr)) != NULL)) {
-    if ((strstr(tok, "/") != NULL)) {
-      ptr1 = tok;
-      while (((tok1 = strtok_r(ptr1, "/", &saveptr1)) != NULL)) {
-        vals[i] = atoi(tok1);
-        ptr1 = saveptr1;
-        i++;
-      }
-      if (i > 0) {
-        // Primeiro param == vertice
-        f->fvertex_size++;
-        f->fvertex = g_realloc(f->fvertex, (f->fvertex_size) * sizeof(int));
-        f->fvertex[f->fvertex_size - 1] = vals[0];
-      }
-      if (i > 1) {
-        // Segundo param == texture
-        f->ftexture_size++;
-        f->ftexture = g_realloc(f->ftexture, (f->ftexture_size) * sizeof(int));
-        f->ftexture[f->ftexture_size - 1] = vals[1];
-      }
-      if (i > 2) {
-        // Terceiro param == normal
-        f->fnormal_size++;
-        f->fnormal = g_realloc(f->fnormal, (f->fnormal_size) * sizeof(int));
-        f->fnormal[f->fnormal_size - 1] = vals[2];
-      }
-      i = 0;
-    } else {
-      // Se nao temos /, só temos vertices na face.
-      f->fvertex_size++;
-      f->fvertex = g_realloc(f->fvertex, (f->fvertex_size) * sizeof(int));
-      f->fvertex[f->fvertex_size - 1] = atoi(tok);
-    }
+		if ((strstr(tok, "/") != NULL)) {
+			ptr1 = tok;
+			while (((tok1 = strtok_r(ptr1, "/", &saveptr1)) != NULL)) {
+				vals[i] = atoi(tok1);
+				ptr1 = saveptr1;
+				i++;
+			}
+			if (i > 0) {
+				// Primeiro param == vertice
+				f->fvertex_size++;
+				f->fvertex = g_realloc(f->fvertex, (f->fvertex_size) * sizeof(int));
+				f->fvertex[f->fvertex_size - 1] = vals[0];
+			}
+			if (i > 1) {
+				// Segundo param == texture
+				f->ftexture_size++;
+				f->ftexture = g_realloc(f->ftexture, (f->ftexture_size) * sizeof(int));
+				f->ftexture[f->ftexture_size - 1] = vals[1];
+			}
+			if (i > 2) {
+				// Terceiro param == normal
+				f->fnormal_size++;
+				f->fnormal = g_realloc(f->fnormal, (f->fnormal_size) * sizeof(int));
+				f->fnormal[f->fnormal_size - 1] = vals[2];
+			}
+			i = 0;
+		} else {
+			// Se nao temos /, só temos vertices na face.
+			f->fvertex_size++;
+			f->fvertex = g_realloc(f->fvertex, (f->fvertex_size) * sizeof(int));
+			f->fvertex[f->fvertex_size - 1] = atoi(tok);
+		}
 		ptr = saveptr;
 	}
 
@@ -175,9 +175,9 @@ static void cleanup_faces(GSList *face_list) {
 
 	for (i = 0; i < g_slist_length(face_list); i++) {
 		face = g_slist_nth_data(face_list, i);
-    g_free(face->fvertex);
-    g_free(face->ftexture);
-    g_free(face->fnormal);
+		g_free(face->fvertex);
+		g_free(face->ftexture);
+		g_free(face->fnormal);
 		g_free(face);
 	}
 
@@ -202,12 +202,14 @@ model_t *load_new_obj(char *file) {
 	FILE *fp;
 	long size;
 	char *file_buffer;
-  model_t *obj;
+	model_t *obj;
+
+	printf("DEBUG: file: %s\n", file);
 
 	if (file == NULL)
 		return NULL;
 
-  obj = NULL;
+	obj = NULL;
 
 	fp = fopen(file, "r");
 
@@ -224,8 +226,8 @@ model_t *load_new_obj(char *file) {
 	memset(file_buffer, 0, size);
 	fread(file_buffer, size, 1, fp);
 
-  obj = g_new(model_t, 1);
-  memset(obj, 0, sizeof(model_t));
+	obj = g_new(model_t, 1);
+	memset(obj, 0, sizeof(model_t));
 
 	breakdown(file_buffer, obj);
 	g_free(file_buffer);
@@ -235,17 +237,17 @@ model_t *load_new_obj(char *file) {
 }
 
 val_t *get_vertex(int index, model_t *obj) {
-  // index - 1 já que faces indexa começando em 1 e nao em 0
+	// index - 1 já que faces indexa começando em 1 e nao em 0
 	return g_slist_nth_data(obj->vertex_list, index - 1);
 }
 
 val_t *get_texture(int index, model_t *obj) {
-  // index - 1 já que faces indexa começando em 1 e nao em 0
+	// index - 1 já que faces indexa começando em 1 e nao em 0
 	return g_slist_nth_data(obj->texture_list, index - 1);
 }
 
 val_t *get_normal(int index, model_t *obj) {
-  // index - 1 já que faces indexa começando em 1 e nao em 0
+	// index - 1 já que faces indexa começando em 1 e nao em 0
 	return g_slist_nth_data(obj->normal_list, index - 1);
 }
 
@@ -254,7 +256,7 @@ void release_obj(model_t *obj) {
 	cleanup_valt_list(obj->texture_list);
 	cleanup_valt_list(obj->normal_list);
 	cleanup_faces(obj->face_list);
-  g_free(obj);
+	g_free(obj);
 }
 
 #if 0
@@ -262,36 +264,36 @@ int main() {
 	int i;
 	val_t *v;
 	face_t *f;
-  model_t *obj;
-  GSList *aux;
+	model_t *obj;
+	GSList *aux;
 
 	obj = load_new_obj("Clementine.obj");
 	//obj = load_new_obj("cube.obj");
 
-  printf("Size: %d\n", g_slist_length(obj->texture_list));
+	printf("Size: %d\n", g_slist_length(obj->texture_list));
 	for (i = 0; i < g_slist_length(obj->texture_list); i++) {
 		v = g_slist_nth_data(obj->texture_list, i);
 		printf("%f %f %f\n", v->x, v->y, v->z);
 	}
 
 #if 0
-  aux = obj->face_list;
-  while ((aux = g_slist_next(aux)) != NULL) {
-    f = (face_t *)aux->data;
-    printf("%d/%d/%d\n", f->fvertex_size, f->ftexture_size, f->fnormal_size);
-    for (i = 0; i < f->fvertex_size; i++) {
-      v = get_vertex(f->fvertex[i], obj);
-      printf("(%f %f %f) ", v->x, v->y, v->z);
-    }
-    printf("\n");
-    //if (v == NULL)
-    //  printf("SHIT! %d, %d\n", i, f->faces[i]);
-    //printf("%f %f %f\n", v->x, v->y, v->z);
-    //printf("\n");
-  }
+	aux = obj->face_list;
+	while ((aux = g_slist_next(aux)) != NULL) {
+		f = (face_t *)aux->data;
+		printf("%d/%d/%d\n", f->fvertex_size, f->ftexture_size, f->fnormal_size);
+		for (i = 0; i < f->fvertex_size; i++) {
+			v = get_vertex(f->fvertex[i], obj);
+			printf("(%f %f %f) ", v->x, v->y, v->z);
+		}
+		printf("\n");
+		//if (v == NULL)
+		//  printf("SHIT! %d, %d\n", i, f->faces[i]);
+		//printf("%f %f %f\n", v->x, v->y, v->z);
+		//printf("\n");
+	}
 
 #endif
-  release_obj(obj);
+	release_obj(obj);
 
 	return 0;
 }

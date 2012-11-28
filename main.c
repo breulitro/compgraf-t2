@@ -1,5 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+#ifdef __APPLE__
+#include <glut.h>
+#else
 #include <GL/glut.h>
+#endif
+
 #include <glib.h>
 #include "structs.h"
 #include "read_script.h"
@@ -156,7 +163,7 @@ void plot_obj(model_t *obj, animation_t *anim) {
 	GSList *aux;
 	int i;
 
-	if (anim == NULL)
+	if (anim == NULL || obj == NULL)
 		return;
 	dump_animation(anim);
 
@@ -352,10 +359,16 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+	printf("DEBUG: %s\n", argv[0]);
+	printf("DEBUG: %s\n", argv[1]);
+
 	actors_list = read_script(argv[1]);
+
+	// XXX: review
 	argv[1] = argv[0];
 	argv++;
 	argc--;
+
 	printf("script loaded\n");
 
 	g_slist_foreach(actors_list, (GFunc)load_obj, NULL);
