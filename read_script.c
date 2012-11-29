@@ -43,8 +43,8 @@ char *trim(char *str) {
 void parse_header(char *token) {
 	int i;
 
-	sscanf(token, "actors %d", &i);
-	// printf("%s: %d\n", __func__, i);
+	sscanf(token, "#actors %d", &i);
+//	printf("%s: %d\n", __func__, i);
 	//	current = NULL;
 }
 
@@ -52,6 +52,7 @@ void parse_header(char *token) {
 void parse_actor(char *token) {
 	char *obj;
 	int i;
+	gchar **tokens;
 
 	if (token == NULL)
 		return;
@@ -61,9 +62,15 @@ void parse_actor(char *token) {
 	  current = NULL;
 	  }*/
 
-	obj = g_new0(char, strlen(token));
-	sscanf(token, "id_actor %d %s", &i, obj);
-	//printf("%s: %d - %s\n", __func__, i, obj);
+	tokens = g_strsplit(token, " ", -1);
+	if (g_strv_length(tokens) < 3)
+		return;
+
+	i = atoi(tokens[1]);
+	obj = g_strdup(tokens[2]);
+	g_strfreev(tokens);
+
+	printf("%s: %d - %s\n", __func__, i, obj);
 
 	current = g_new0(actor_t, 1);
 	current->id = i;
@@ -95,23 +102,62 @@ val_t *parse_val(char *token) {
 
 void parse_animation(char *token) {
 	animation_t *a = NULL;
-	char *tok, *taux;
 	char *key, *val;
 	val_t *v;
+	gchar **tokens;
+	int i;
 
 	if (token == NULL)
 		return;
 
 	if ((a = g_new0(animation_t, 1)) == NULL) {
 		perror("g_new()");
-
 		exit(1);
 	}
 
+	tokens = g_strsplit(token, " ", -1);
+
+	for (i = 0; i < g_strv_length(tokens); i++) {
+		key = strtok_r(tokens[i], "=", &val);
+
+		if (key != NULL && val != NULL) {
+			if (g_ascii_strcasecmp(key, "Frame") == 0) {
+				a->frame = atoi(val);
+			} else if (g_ascii_strcasecmp(key, "trans") == 0) {
+				v = parse_val(val);
+				if (v != NULL) {
+					a->trans = g_new0(val_t, 1);
+					memcpy(a->trans, v, sizeof(val_t));
+					g_free(v);
+					v = NULL;
+				}
+			} else if (g_ascii_strcasecmp(key, "scale") == 0) {
+				v = parse_val(val);
+				if (v != NULL) {
+					a->scale = g_new0(val_t, 1);
+					memcpy(a->scale, v, sizeof(val_t));
+					g_free(v);
+					v = NULL;
+				}
+			} else if (g_ascii_strcasecmp(key, "rot") == 0) {
+				v = parse_val(val);
+				if (v != NULL) {
+					a->rot = g_new0(val_t, 1);
+					memcpy(a->rot, v, sizeof(val_t));
+					g_free(v);
+					v = NULL;
+				}
+			}
+		}
+	}
+
+	g_strfreev(tokens);
+
+
+#if 0
 	if ((tok = strtok_r(token, " ", &taux)) == NULL)
 		return;
 
-	key = strtok_r(tok, "=", &val);
 
 	if (val == NULL || key == NULL)
 		return;
@@ -137,7 +183,7 @@ void parse_animation(char *token) {
 			v = NULL;
 		}
 	} while ((tok = strtok_r(taux, " ", &taux)) != NULL);
-
+#endif
 	//dump_animation(a);
 	current->animations = g_slist_append(current->animations, a);
 
@@ -145,20 +191,25 @@ void parse_animation(char *token) {
 }
 
 void parser(char *token) {
-	char *tok;
+	gchar **tokens;
 
 	if (token == NULL)
 		return;
 
+	g_strchug(token);
+	tokens = g_strsplit(token, " ", -1);
+
 	// header
-	if ((tok = strstr(token, "actors")) != NULL)
-		parse_header(tok);
+	if ((g_ascii_strcasecmp(tokens[0], "#actors")) == 0)
+		parse_header(token);
 	// actor
-	if ((tok = strstr(token, "id_actor")) != NULL)
-		parse_actor(tok);
+	else if ((g_ascii_strcasecmp(tokens[0], "#id_actor")) == 0)
+		parse_actor(token);
 	// animation
-	if ((tok = strstr(token, "Frame")) != NULL)
-		parse_animation(tok);
+	else if ((g_ascii_strncasecmp(tokens[0], "Frame", 5)) == 0)
+		parse_animation(token);
+
+	g_strfreev(tokens);
 }
 
 void clean_animation(animation_t *a) {
