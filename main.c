@@ -1,396 +1,352 @@
-#include <stdio.h>
 #include <stdlib.h>
-
-#ifdef __APPLE__
-#include <glut.h>
-#else
+#include <stdio.h>
 #include <GL/glut.h>
-#endif
 
-#include <glib.h>
-#include "structs.h"
-#include "read_script.h"
-#include "load_obj.h"
+#include "t2.h"
 
-// all variables initialized to 1.0, meaning
-// the triangle will initially be white
-float red = 1.0f, blue = 1.0f, green = 1.0f;
-float xangle = 0.0, yangle = 0.0, zangle = 0.0;
+#define SENS_ROT	10.0
+#define SENS_OBS	1.0
+#define SENS_TRANSL	1.0
 
-val_t	olho = {-20, 10, -100},
-		foco = {0, 10, 0},
-		normal = {0, 1, 0};
-/*val_t olho = {80, 80, 80},
-  foco = {9, -17, -1},
-  normal = {0, 1, 0};
- */
-void changeSize(int w, int h) {
-	float ratio;
+#define TAM 1000
+#define D 100
 
-	// Prevent a divide by zero, when window is too short
-	// (you cant make a window of zero width).
-	if (h == 0)
-		h = 1;
+int x_ini,y_ini,bot;
+GLfloat rotX, rotY, rotX_ini, rotY_ini;
+GLfloat obsX, obsY=200, obsZ=400, obsX_ini, obsY_ini, obsZ_ini;
+GLfloat fAspect = 1, angle = 45;
 
-	ratio = 1.0 * w / h;
+GLfloat luzAmbiente[4]={0.2,0.2,0.2,1.0};
+GLfloat luzDifusa[4]={0.7,0.7,0.7,1.0};		 // "cor"
+GLfloat luzEspecular[4]={1.0, 1.0, 1.0, 1.0};// "brilho"
+GLfloat posicaoLuz[4]={0.0, 30.0, 120.0, 1.0};
 
-	// Use the Projection Matrix
-	glMatrixMode(GL_PROJECTION);
+void PosicionaObservador(void)
+{
+  glMatrixMode(GL_MODELVIEW);
 
-	// Reset Matrix
-	glLoadIdentity();
+  glLoadIdentity();
 
-	// Set the viewport to be the entire window
-	glViewport(0, 0, w, h);
+  //glTranslatef(-obsX,-obsY,-obsZ); //Outra opcao de camera
+  glRotatef(rotX,1,0,0);
+  glRotatef(rotY,0,1,0);
 
-	gluPerspective(45, ratio, 1, 1000);
-
-	// Get Back to the Modelview
-	glMatrixMode(GL_MODELVIEW);
+  gluLookAt(obsX,obsY,obsZ, 0.0,0.0,0.0, 0.0,1.0,0.0);
 }
 
-void processNormalKeys(unsigned char key, int x, int y) {
-	if (glutGetModifiers() == GLUT_ACTIVE_CTRL) {
-		printf("GLUT_ACTIVE_CTRL: %c\n", key);// nÃ£o entendi como funciona isso
-	} else {
-		switch (key) {
-			case 0x27:
-				exit(0);
-			case 'a':
-				//xangle += .5;
-				foco.x += 10;
-				break;
-			case 'd':
-				//yangle -= .5;
-				foco.z -= 10;
-				break;
-			case 's':
-				//xangle -= .5;
-				foco.x -= 10;
-				break;
-			case 'w':
-				//yangle += .5;
-				foco.z += 10;
-				break;
+// Função usada para especificar o volume de visualização
+void EspecificaParametrosVisualizacao(void)
+{
+  // Especifica sistema de coordenadas de projeção
+  glMatrixMode(GL_PROJECTION);
+  // Inicializa sistema de coordenadas de projeção
+  glLoadIdentity();
 
-		}
-	}
+  // Especifica a projeção perspectiva
+  gluPerspective(angle,fAspect,0.4,5000);
+
+  // Especifica posição do observador e do alvo
+  PosicionaObservador();
 }
-
-void processSpecialKeys(int key, int x, int y) {
-	int mod;
-
-	switch(key) {
-		case GLUT_KEY_F1 :
-			mod = glutGetModifiers();
-			if (mod == (GLUT_ACTIVE_CTRL | GLUT_ACTIVE_ALT)) {
-				red = 1.0;
-				green = 1.0;
-				blue = 1.0;
-			}
-			red = 1.0;
-			green = 0.0;
-			blue = 0.0;
-			break;
-		case GLUT_KEY_F2 :
-			red = 0.0;
-			green = 1.0;
-			blue = 0.0;
-			break;
-		case GLUT_KEY_F3 :
-			red = 0.0;
-			green = 0.0;
-			blue = 1.0;
-			break;
-		case GLUT_KEY_LEFT:
-			olho.z -=10;
-			break;
-		case GLUT_KEY_RIGHT:
-			olho.x += 10;
-			break;
-		case GLUT_KEY_UP:
-			olho.x -= 10;
-			break;
-		case GLUT_KEY_DOWN:
-			olho.z +=10;
-			break;
-	}
-}
-
-GSList *interpolate(GSList *l) {
-	//TODO
-}
-
-void desenhaChao() {
-	float z, x;
-
-	glColor3f(0, 0, 1);
-	glLineWidth(1);
-	glBegin(GL_LINES);
-
-	for(z =- 1000; z <= 1000; z += 10) {
-		glVertex3f(-1000, -0.1f, z);
-		glVertex3f(1000, -0.1f, z);
-	}
-	for(x =- 1000; x <= 1000; x += 10) {
-		glVertex3f(x, -0.1f, -1000);
-		glVertex3f(x, -0.1f, 1000);
-	}
-	glEnd();
-	glLineWidth(1);
-}
-
-void texturize() {
 #if 0
-	GLuint texture;
+void DesenhaChao()
+{
+  //Flags para determinar a cord de cada quadrado
+  int flagx, flagz;
+  //Define a normal apontando para cima
+  glNormal3f(0,1,0);
 
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 13);
+  glBegin(GL_QUADS);
+  flagx = 0;
+  //X varia de -TAM a TAM, de D em D
+  for(float x=-TAM; x<TAM; x+=D)
+  {
+    //Flagx determina a cor inicial
+    if(flagx) flagz = 0;
+    else flagz = 1;
+    //Z varia de -TAM a TAM, de D em D
+    for (float z=-TAM;z<TAM;z+=D)
+    {
+      //Escolhe cor
+      if(flagz)
+        glColor3f(0.4,0.4,0.4);
+      else
+        glColor3f(1,1,1);
+      //E desenha o quadrado
+      glVertex3f(x,-60,z);
+      glVertex3f(x+D,-60,z);
+      glVertex3f(x+D,-60,z+D);
+      glVertex3f(x,-60,z+D);
+      //Alterna cor
+      flagz = !flagz;
+    }
+    //A cada coluna, alterna cor inicial
+    flagx = !flagx;
+  }
+  glEnd();
+}
+#else
+void DesenhaChao() {
+       float z, x;
+
+       glColor3f(0, 0, 1);
+       glLineWidth(1);
+       glBegin(GL_LINES);
+
+       for(z = 1000; z <= 1000; z += 10) {
+               glVertex3f(1000, 0.1f, z);
+               glVertex3f(1000, 0.1f, z);
+       }
+       for(x = 1000; x <= 1000; x += 10) {
+               glVertex3f(x, 0.1f, 1000);
+               glVertex3f(x, 0.1f, 1000);
+       }
+       glEnd();
+       glLineWidth(1);
+}
 #endif
+void DefineIluminacao()
+{
+  // Capacidade de brilho do material
+  GLfloat especularidade[4]={1.0,1.0,1.0,1.0};
+  GLint especMaterial = 60;
+
+  // Habilita o modelo de colorização de Gouraud
+  glShadeModel(GL_SMOOTH);
+  //glShadeModel(GL_FLAT);
+
+  // Define a refletância do material
+  glMaterialfv(GL_FRONT,GL_SPECULAR, especularidade);
+  // Define a concentração do brilho
+  glMateriali(GL_FRONT,GL_SHININESS,especMaterial);
+
+  // Ativa o uso da luz ambiente
+  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, luzAmbiente);
+
+  // Define os parâmetros da luz de número 0
+  glLightfv(GL_LIGHT0, GL_AMBIENT, luzAmbiente);
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
+  glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
+  glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz );
+
+  //Desabilita iluminacao para desenhar a esfera
+  glDisable(GL_LIGHTING);
+  //Desenha esfera na posição da fonte de luz
+  glPushMatrix();
+  glTranslatef(posicaoLuz[0]+60, posicaoLuz[1], posicaoLuz[2]);
+  glColor3f(1.0f, 0, 0);
+  glutSolidSphere(5, 50, 50);
+  glTranslatef(posicaoLuz[0], posicaoLuz[1], posicaoLuz[2]);
+  glColor3f(1.0f, 1.0f, 0.0f);
+  glutSolidSphere(5, 50, 50);
+  glPopMatrix();
+  glEnable(GL_LIGHTING);
 }
 
-void plot_obj(model_t *obj, animation_t *anim) {
-	face_t *face;
-	val_t *v;
-	GSList *aux;
-	int i;
+// Função callback chamada para fazer o desenho
+void Desenha(void)
+{
+  static int frame_atual;
+  static int framerate;
 
-	if (anim == NULL || obj == NULL)
-		return;
-	dump_animation(anim);
+  frame_atual += !(++framerate % 30);
 
-	v = anim->trans;
-	if (v != NULL) {
-		glTranslatef(v->x, v->y, v->z);
-	}
+  // Limpa a janela e o depth buffer
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	v = anim->scale;
-	if (v != NULL) {
-		glScalef(v->x, v->y, v->z);
-	}
+  EspecificaParametrosVisualizacao();
+  DesenhaChao();
 
-	v = anim->rot;
-	if (v != NULL) {
-		glRotatef(v->y, 0, 1, 0);
-	}
+  DefineIluminacao();
 
-	//glTranslatef(100, 0, 0);
-	//  glScalef(20, 20, 20);
-	aux = obj->face_list;
-	glBegin(GL_TRIANGLES);
-	while ((aux = g_slist_next(aux)) != NULL) {
+  glColor3f(0.0f, 0.0f, 1.0f);
 
-		face = (face_t *)aux->data;
-		for (i = 0; i < face->fvertex_size; i++) {
-			v = get_vertex(face->fvertex[i], obj);
-			glVertex3f(v->x, v->y, v->z);
-		}
-		for (i = 0; i < face->ftexture_size; i++) {
-			v = get_texture(face->ftexture[i], obj);
-			glTexCoord3f(v->x, v->y, v->z);
-		}
-		for (i = 0; i < face->fnormal_size; i++) {
-			v = get_normal(face->fnormal[i], obj);
-			glNormal3f(v->x, v->y, v->z);
-		}
-	}
-	glEnd();
+  g_slist_foreach(actors_list, (GFunc)plot_actor, &frame_atual);
+
+  glutSwapBuffers();
 }
 
-void plot_actor(actor_t *a, int *frame_atual) {
-	plot_obj(a->obj, g_slist_nth_data(a->animations, *frame_atual));
+// Inicializa parâmetros de rendering
+void Inicializa (void)
+{
+  // Especifica que a cor de fundo da janela será preta
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+  DefineIluminacao();
+
+  // Habilita a definição da cor do material a partir da cor corrente
+  glEnable(GL_COLOR_MATERIAL);
+  //Habilita o uso de iluminação
+  glEnable(GL_LIGHTING);
+  // Habilita a luz de número 0
+  glEnable(GL_LIGHT0);
+  // Habilita o depth-buffering
+  glEnable(GL_DEPTH_TEST);
 }
 
-GSList *actors_list = NULL;
+// Função callback chamada quando o tamanho da janela é alterado
+void AlteraTamanhoJanela(GLsizei w, GLsizei h)
+{
+  // Para previnir uma divisão por zero
+  if ( h == 0 ) h = 1;
 
-void renderScene(void) {
-	static int frame_atual;
-	static int framerate;
+  // Especifica o tamanho da viewport
+  glViewport(0, 0, w, h);
 
-	frame_atual += !(++framerate % 30);
+  // Calcula a correção de aspecto
+  fAspect = (GLfloat)w/(GLfloat)h;
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	desenhaChao();
-
-	// Reset transformations
-	glLoadIdentity();
-
-	// Set the camera
-
-	//	glRotatef(angle, 0.0f, 1.0f, 0.0f);
-	glColor3f(red, green, blue);
-
-	gluLookAt(olho.x, olho.y, olho.z,
-			foco.x, foco.y, foco.z,
-			normal.x, normal.y, normal.z);
-
-	//  glRotatef(xangle, 1, 0, 0);
-	//  glRotatef(yangle, 0, 1, 0);
-	//  glRotatef(zangle, 0, 0, 1);
-
-
-	g_slist_foreach(actors_list, (GFunc)plot_actor, &frame_atual);
-
-	glutSwapBuffers();
+  EspecificaParametrosVisualizacao();
 }
 
-void processMousePassiveMotion(int x, int y) {
-	printf("%s: x=%d y =%d\n", __func__, x, y);
+// Função callback chamada para gerenciar eventos do mouse
+void GerenciaMouse(int button, int state, int x, int y)
+{
+  if(state==GLUT_DOWN)
+  {
+    x_ini = x;
+    y_ini = y;
+    obsX_ini = obsX;
+    obsY_ini = obsY;
+    obsZ_ini = obsZ;
+    rotX_ini = rotX;
+    rotY_ini = rotY;
+    bot = button;
+  }
+  else bot = -1;
 }
 
-void processMouseActiveMotion(int x, int y) {
-	printf("%s: x=%d y =%d\n", __func__, x, y);
+void GerenciaMovim(int x, int y)
+{
+  if(bot==GLUT_LEFT_BUTTON)
+  {
+    int deltax = x_ini - x;
+    int deltay = y_ini - y;
+
+    rotY = rotY_ini - deltax/SENS_ROT;
+    rotX = rotX_ini - deltay/SENS_ROT;
+  }
+
+  else if(bot==GLUT_RIGHT_BUTTON)
+  {
+    int deltaz = y_ini - y;
+
+    obsZ = obsZ_ini + deltaz/SENS_OBS;
+  }
+
+  else if(bot==GLUT_MIDDLE_BUTTON)
+  {
+    int deltax = x_ini - x;
+    int deltay = y_ini - y;
+
+    obsX = obsX_ini + deltax/SENS_TRANSL;
+    obsY = obsY_ini - deltay/SENS_TRANSL;
+  }
+  PosicionaObservador();
+  glutPostRedisplay();
 }
 
-void processMouse(int bt, int state, int x, int y) {
-	if (state == GLUT_DOWN)
-		if (bt == GLUT_LEFT_BUTTON)
-			printf("%s:Left click @ x=%d y =%d\n", __func__, x, y);
-		else if (bt == GLUT_RIGHT_BUTTON)
-			printf("%s:Right click @ x=%d y =%d\n", __func__, x, y);
-		else if (bt == GLUT_MIDDLE_BUTTON)
-			printf("%s:Middle click @ x=%d y =%d\n", __func__, x, y);
-
+void GerenciaTeclado(unsigned char key,int a,int b)
+{
+  if (key == 27) exit(0);
+  switch (key)
+  {
+    case 'q':
+      luzAmbiente[0] -= .1;
+      luzAmbiente[1] -= .1;
+      luzAmbiente[2] -= .1;
+      break;
+    case 'w':
+      luzAmbiente[0] += .1;
+      luzAmbiente[1] += .1;
+      luzAmbiente[2] += .1;
+      break;
+    case 'a':
+      luzDifusa[0] -= .1;
+      luzDifusa[1] -= .1;
+      luzDifusa[2] -= .1;
+      break;
+    case 's':
+      luzDifusa[0] += .1;
+      luzDifusa[1] += .1;
+      luzDifusa[2] += .1;
+      break;
+    case 'z':
+      luzEspecular[0] -= .1;
+      luzEspecular[1] -= .1;
+      luzEspecular[2] -= .1;
+      break;
+    case 'x':
+      luzEspecular[0] += .1;
+      luzEspecular[1] += .1;
+      luzEspecular[2] += .1;
+      break;
+  }
+  glutPostRedisplay();
 }
 
-GSList *animation_list_linear = NULL;
+void GerenciaTecladoEspecial(int key, int x,int y)
+{
+  switch (key)
+  {
+    case GLUT_KEY_LEFT:
+      posicaoLuz[0] -= 2;
+      break;
+    case GLUT_KEY_RIGHT:
+      posicaoLuz[0] += 2;
+      break;
+    case GLUT_KEY_UP:
+      posicaoLuz[1] += 2;
+      break;
+    case GLUT_KEY_DOWN:
+      posicaoLuz[1] -= 2;
+      break;
+    case GLUT_KEY_PAGE_UP:
+      posicaoLuz[2] -= 2;
+      break;
+    case GLUT_KEY_PAGE_DOWN:
+      posicaoLuz[2] += 2;
+      break;
+  }
 
-/**
- * trans: val_t a ser dividido
- * dividor: por quanto vai ser dividido
- * n: qual momento tu quer a transformacao
- */
-
-val_t *divide_val(val_t *val, int divisor, int n) {
-	val_t *v;
-
-	if (val == NULL)
-		return NULL;
-
-	v = malloc(sizeof(val_t));
-	//uma hora n == divisor
-	if (n == 0) {
-		v->x = val->x;
-		v->y = val->y;
-		v->z = val->z;
-	} else {
-		v->x = val->x / ((float)n / divisor);
-		v->y = val->y / ((float)n / divisor);
-		v->z = val->z / ((float)n / divisor);
-	}
-
-	return v;
+  glutPostRedisplay();
 }
 
-void delta_func(animation_t *a, animation_t **i) {
-	int c, delta;
-	animation_t *anim, *aux;
-	val_t *val;
-
-	if (*i != NULL) {
-		printf("INICIAL:");
-		dump_animation(*i);
-		printf("FINAL:");
-		dump_animation(a);
-		printf("=========\n");
-
-		aux = *i;
-		delta = a->frame - aux->frame;
-		//'c' nunca vai comeÃ§ar em 1
-#ifdef DBG
-		printf("Iterando de %d a %d\n", aux->frame, a->frame);
-#endif
-		for (c = aux->frame; c <= a->frame; c++) {
-#ifdef DBG
-			printf("Iteracao: %d\n", c);
-#endif
-			anim = malloc(sizeof(animation_t));
-			anim->frame = c;
-			anim->trans = divide_val(a->trans, delta, (c - aux->frame));
-			anim->scale = divide_val(a->scale, delta, (c - aux->frame));
-			anim->rot = divide_val(a->rot, delta, (c - aux->frame));
-
-			animation_list_linear = g_slist_append(animation_list_linear, anim);
-		}
-	} else {
-		//Essa animaÃ§Ã£o comeÃ§a sÃ³ no frame a->frame, entÃ£o bota nulo nos frames
-		//iniciais
-		for (c = 1; c <= a->frame; c++)
-			animation_list_linear = g_slist_append(animation_list_linear, NULL);
-	}
-
-	*i = a;
-}
-
-void free_val_t(val_t *v) {
-	if (v != NULL)
-		free(v);
-}
-
-void load_obj(actor_t *a) {
-	animation_t *inicial = NULL;
-
-	printf("Loading %s\n", a->file);
-	a->obj = load_new_obj(a->file);
-
-	animation_list_linear = NULL;
-	g_slist_foreach(a->animations, (GFunc)delta_func, &inicial);
-
-	g_slist_foreach(a->animations, (GFunc)free_val_t, NULL);
-	g_slist_free(a->animations);
-
-	g_slist_foreach(animation_list_linear, (GFunc)dump_animation, NULL);
-	a->animations = animation_list_linear;
-}
-
+// Programa Principal
 int main(int argc, char **argv) {
-	GHashTable *obj;
+  GHashTable *obj;
 
-	if (argc < 2) {
-		printf("usage: %s <script file> [glut params]\n", argv[0]);
-		return 1;
-	}
+  if (argc < 2) {
+    printf("usage: %s <script file> [glut params]\n", argv[0]);
+    return 1;
+  }
 
-	printf("DEBUG: %s\n", argv[0]);
-	printf("DEBUG: %s\n", argv[1]);
+  printf("DEBUG: %s\n", argv[0]);
+  printf("DEBUG: %s\n", argv[1]);
 
-	actors_list = read_script(argv[1]);
+  actors_list = read_script(argv[1]);
 
-	// XXX: review
-	argv[1] = argv[0];
-	argv++;
-	argc--;
+  // XXX: review
+  argv[1] = argv[0];
+  argv++;
+  argc--;
 
-	printf("script loaded\n");
+  printf("script loaded\n");
 
-	g_slist_foreach(actors_list, (GFunc)load_obj, NULL);
+  g_slist_foreach(actors_list, (GFunc)load_obj, NULL);
+  glutInit(&argc,argv);
 
-	glutInit(&argc, argv);
-	//-1 == default
-	glutInitWindowPosition(100, 100);
-	glutInitWindowSize(800, 600);
-	glutInitDisplayMode(GLUT_RGB|GLUT_DEPTH);
-	glutCreateWindow("CG T2");
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+  glutInitWindowSize(800,600);
+  glutCreateWindow("Exercicio de Iluminacao");
+  glutDisplayFunc(Desenha);
+  glutReshapeFunc(AlteraTamanhoJanela);
+  glutMotionFunc(GerenciaMovim);
+  glutMouseFunc(GerenciaMouse);
+  glutKeyboardFunc(GerenciaTeclado);
+  glutSpecialFunc(GerenciaTecladoEspecial);
+  Inicializa();
+  glutMainLoop();
 
-	// register callbacks
-	glutDisplayFunc(renderScene);
-	glutReshapeFunc(changeSize);
-	glutIdleFunc(renderScene);
-	glutKeyboardFunc(processNormalKeys);
-	glutSpecialFunc(processSpecialKeys);
-
-	glutMouseFunc(processMouse);
-	glutMotionFunc(processMouseActiveMotion);
-	//  glutPassiveMotionFunc(processMousePassiveMotion);
-
-	// enter GLUT event processing cycle
-	glutMainLoop();
+  return 0;
 }
