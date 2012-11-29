@@ -26,6 +26,11 @@ GLfloat luzDifusa[4]={0.7,0.7,0.7,1.0};		 // "cor"
 GLfloat luzEspecular[4]={1.0, 1.0, 1.0, 1.0};// "brilho"
 GLfloat posicaoLuz[4]={0.0, 30.0, 120.0, 1.0};
 
+int playing = 1;
+int playloop = 1;
+int velocidade = 30;
+int frame_atual = 0;
+
 void PosicionaObservador(void)
 {
 	glMatrixMode(GL_MODELVIEW);
@@ -150,14 +155,34 @@ void DefineIluminacao()
 #endif
 }
 
+int maxFrame = 0;
+
+void getLatestFrameIndex(actor_t *a) {
+	animation_t *anim;
+
+	anim = g_slist_nth_data(a->animations, g_slist_length(a->animations) - 1);
+	if (anim && anim->frame > maxFrame)
+		maxFrame = anim->frame;
+}
+
 // Função callback chamada para fazer o desenho
 void Desenha(void)
 {
-	static int frame_atual;
 	static int framerate;
 
-	frame_atual += !(++framerate % 30);
-
+	//FIXME: Ultimo frame nao esta sendo exibido
+	//  0 Stopped
+	//  1 Playing
+	if (playing)
+		frame_atual += !(++framerate % velocidade);
+// -1 Playing backward try
+//		frame_atual += playing * !(++framerate % velocidade);
+	if (frame_atual > maxFrame) {
+		if (playloop)
+			frame_atual = 0;
+		else
+			playing = 0;
+	}
 	// Limpa a janela e o depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -255,9 +280,17 @@ void GerenciaMovim(int x, int y)
 
 void GerenciaTeclado(unsigned char key,int a,int b)
 {
+	// play (tocar até o final)
+	// pause (pausar a animação)
+	if (key == 13) playing = !playing;
 	if (key == 27) exit(0);
 	switch (key)
 	{
+		case 'l':
+			playloop = !playloop;
+			if (frame_atual > maxFrame)
+				frame_atual = 0;
+			break;
 		case 'q':
 			luzAmbiente[0] -= .1;
 			luzAmbiente[1] -= .1;
@@ -288,25 +321,31 @@ void GerenciaTeclado(unsigned char key,int a,int b)
 			luzEspecular[1] += .1;
 			luzEspecular[2] += .1;
 			break;
+
 	}
 	//glutPostRedisplay(); idle() does that
 }
 
 void GerenciaTecladoEspecial(int key, int x,int y)
 {
+
 	switch (key)
 	{
 		case GLUT_KEY_LEFT:
 			posicaoLuz[0] -= 2;
+			frame_atual--;		// rewind (voltar um frame)
 			break;
 		case GLUT_KEY_RIGHT:
 			posicaoLuz[0] += 2;
+			frame_atual++;		// forward (avançar um frame)
 			break;
 		case GLUT_KEY_UP:
 			posicaoLuz[1] += 2;
+			velocidade -= 10;	// aumenta velocidade
 			break;
 		case GLUT_KEY_DOWN:
 			posicaoLuz[1] -= 2;
+			velocidade += 10;	// diminui velocidade
 			break;
 		case GLUT_KEY_PAGE_UP:
 			posicaoLuz[2] -= 2;
@@ -319,7 +358,6 @@ void GerenciaTecladoEspecial(int key, int x,int y)
 	//glutPostRedisplay();
 }
 
-//NEW FROM HERE
 void idle() {
 	static char flag = 0;
 
@@ -330,7 +368,6 @@ void idle() {
 	Desenha();
 	flag--;
 }
-//DOWNTO HERE
 
 // Programa Principal
 int main(int argc, char **argv) {
@@ -351,6 +388,7 @@ int main(int argc, char **argv) {
 
 	printf("script loaded\n");
 
+	g_slist_foreach(actors_list, (GFunc)getLatestFrameIndex, NULL);
 	g_slist_foreach(actors_list, (GFunc)load_obj, NULL);
 	glutInit(&argc,argv);
 
@@ -364,9 +402,7 @@ int main(int argc, char **argv) {
 	glutKeyboardFunc(GerenciaTeclado);
 	glutSpecialFunc(GerenciaTecladoEspecial);
 
-	//NEW FROM HERE
 	glutIdleFunc(idle);
-	//DOWNTO HERE
 
 	Inicializa();
 	glutMainLoop();
