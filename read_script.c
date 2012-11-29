@@ -5,6 +5,9 @@
 
 #include "structs.h"
 
+GSList *actors = NULL;
+actor_t *current = NULL;
+
 char *trim(char *str) {
 	size_t len = 0;
 	char *frontp = str - 1;
@@ -37,9 +40,6 @@ char *trim(char *str) {
 	return str;
 }
 
-GSList *actors = NULL;
-actor_t *current = NULL;
-
 void parse_header(char *token) {
 	int i;
 
@@ -53,7 +53,8 @@ void parse_actor(char *token) {
 	char *obj;
 	int i;
 
-	printf("IM IN!\n");
+	if (token == NULL)
+		return;
 
 	/*if (current != NULL) {
 	  actors = g_slist_append(actors, current);
@@ -72,9 +73,16 @@ void parse_actor(char *token) {
 	actors = g_slist_append(actors, current);
 }
 
+/* XXX: Esta função retorna memoria alocada internamente que deve ser liberada pelo
+ * utilizador da mesma */
 val_t *parse_val(char *token) {
 	float x, y, z;
-	val_t *ret = g_new(val_t, 1);
+	val_t *ret;
+
+	if (token == NULL)
+		return NULL;
+
+	ret = g_new0(val_t, 1);
 
 	sscanf(token, "<%f,%f,%f>", &x, &y, &z);
 	//printf("%s: x = %.2f y = %.2f, z = %.2f\n", __func__, x, y, z);
@@ -91,40 +99,45 @@ void parse_animation(char *token) {
 	char *key, *val;
 	val_t *v;
 
-	if ((a = g_new(animation_t, 1)) == NULL) {
+	if (token == NULL)
+		return;
+
+	if ((a = g_new0(animation_t, 1)) == NULL) {
 		perror("g_new()");
+
 		exit(1);
 	}
-	memset(a, 0, sizeof(animation_t));
 
 	if ((tok = strtok_r(token, " ", &taux)) == NULL)
 		return;
 
 	key = strtok_r(tok, "=", &val);
+
+	if (val == NULL || key == NULL)
+		return;
+
 	a->frame = atoi(val);
+
 	do {
 		key = strtok_r(tok, "=", &val);
-		//  printf("%s: %s -> %s\n", __func__, key, val);
-		//    printf("%s: x = %.2f y = %.2f, z = %.2f\n", __func__, v->x, v->y, v->z);
-		/*if (strcmp(key, "Frame") == 0) {
-		  v = parse_val(val);
-		  a->frame = ((int)v->x) == 0 ? atoi(val) : v->x;
-		//printf("FRAME: %d -> #%s#\n", a->frame, val);
-		} else */if (strcmp(key, "trans") == 0) {
-			v = parse_val(val);
-			a->trans = malloc(sizeof(val_t));
-			memcpy(a->trans, v, sizeof(val_t));
-		} else if (strcmp(key, "scale") == 0) {
-			v = parse_val(val);
-			a->scale = malloc(sizeof(val_t));
-			memcpy(a->scale, v, sizeof(val_t));
-		} else if (strcmp(key, "rot") == 0) {
-			v = parse_val(val);
-			a->rot = malloc(sizeof(val_t));
-			memcpy(a->rot, v, sizeof(val_t));
+		v = parse_val(val);
+
+		if (v != NULL) {
+			if (g_ascii_strcasecmp(key, "trans") == 0) {
+				a->trans = g_new0(val_t, 1);
+				memcpy(a->trans, v, sizeof(val_t));
+			} else if (g_ascii_strcasecmp(key, "scale") == 0) {
+				a->scale = g_new0(val_t, 1);
+				memcpy(a->scale, v, sizeof(val_t));
+			} else if (g_ascii_strcasecmp(key, "rot") == 0) {
+				a->rot = g_new0(val_t, 1);
+				memcpy(a->rot, v, sizeof(val_t));
+			}
+			g_free(v);
+			v = NULL;
 		}
-	//  free(v);
 	} while ((tok = strtok_r(taux, " ", &taux)) != NULL);
+
 	//dump_animation(a);
 	current->animations = g_slist_append(current->animations, a);
 
@@ -133,86 +146,81 @@ void parse_animation(char *token) {
 
 void parser(char *token) {
 	char *tok;
+
+	if (token == NULL)
+		return;
+
 	// header
 	if ((tok = strstr(token, "actors")) != NULL)
 		parse_header(tok);
-
 	// actor
-	if ((tok = strstr(token, "id_actor")) != NULL) {
+	if ((tok = strstr(token, "id_actor")) != NULL)
 		parse_actor(tok);
-	}
 	// animation
-	if ((tok = strstr(token, "Frame")) != NULL) {
+	if ((tok = strstr(token, "Frame")) != NULL)
 		parse_animation(tok);
-	}
 }
 
 void clean_animation(animation_t *a) {
+	if (a == NULL)
+		return;
+
 	if (a->trans != NULL)
-		free(a->trans);
+		g_free(a->trans);
 	if (a->scale != NULL)
-		free(a->scale);
+		g_free(a->scale);
 	if (a->rot != NULL)
-		free(a->rot);
+		g_free(a->rot);
 }
 
 void clean_actor(actor_t *a) {
+	if (a == NULL)
+		return;
+
 	if (a->file != NULL)
-		free(a->file);
+		g_free(a->file);
+
 	g_slist_foreach(a->animations, (GFunc)clean_animation, NULL);
 	g_slist_free(a->animations);
 }
 
 GSList *read_script(char *file) {
-	FILE *f;
-	char buf[80], *script;
-	size_t rb;
-	int i;
+	FILE *fp;
+	char *file_buffer, *tok;
+	long size;
 
 	actors = NULL;
+
 	if (file == NULL) {
+		printf("%s: Empty file\n", __func__);
 		return NULL;
 	}
 
-	i = 0;
-	script = malloc(1);
-	f = fopen(file, "r");
-	do {
-		memset(buf, 0, 80);
-		rb = fread(buf, 80, 1, f);
-		if (!rb && ferror(f)) {
-			perror("error reading file\n");
-			break;
-		} else if (rb < 80)
-			script = realloc(script, strlen(buf) + strlen(script));
-		else
-			script = realloc(script, strlen(script) + 80);
+	fp = fopen(file, "r");
+	if (!fp) {
+		perror("fopen");
+		return NULL;
+	}
 
-		strncpy(&script[i], buf, (rb < 80) ? strlen(buf) : 80);
+	fseek(fp, 0L, SEEK_END);
+	size = ftell(fp);
+	fseek(fp, 0L, SEEK_SET);
 
-		i += (rb < 80) ? strlen(buf) : 80;
-		script[i] = '\0';
-	} while (!feof(f));
-	fclose(f);
+	file_buffer = g_new0(char, size);
+	fread(file_buffer, size, 1, fp);
+	fclose(fp);
 
-	char *tok;
-	//scene_t s;
-	//actor_t *a;
-	//struct transf_t *t;
-
-	tok = strtok(script, "\n");
-	for (i = 0; tok != NULL; i++) {
-		// printf("%s {\n", tok);
+	tok = strtok(file_buffer, "\n");
+	while (tok != NULL) {
 		parser(tok);
-		//printf("}\n");
 		tok = strtok(NULL, "\n");
 	}
 	//	printf("#############################################\n");
 	//	printf("actors.length = %d\n", g_slist_length(actors));
 	//	g_slist_foreach(actors, (GFunc)dump_actor, NULL);
 
-	if (script != NULL)
-		free(script);
+	if (file_buffer != NULL)
+		g_free(file_buffer);
 
 	return actors;
 }
@@ -226,17 +234,3 @@ void dump_actors() {
 	printf("actors.length = %d\n", g_slist_length(actors));
 	g_slist_foreach(actors, (GFunc)dump_actor, NULL);
 }
-
-#if 0
-break_space
-
-GSList *actors;
-
-parser_actor(char *token) {
-	actor_t actor;
-}
-
-parser_animation(char *token) {
-	animation_t anim;
-}
-#endif

@@ -204,8 +204,6 @@ model_t *load_new_obj(char *file) {
 	char *file_buffer;
 	model_t *obj;
 
-	printf("DEBUG: file: %s\n", file);
-
 	if (file == NULL)
 		return NULL;
 
@@ -226,8 +224,7 @@ model_t *load_new_obj(char *file) {
 	memset(file_buffer, 0, size);
 	fread(file_buffer, size, 1, fp);
 
-	obj = g_new(model_t, 1);
-	memset(obj, 0, sizeof(model_t));
+	obj = g_new0(model_t, 1);
 
 	breakdown(file_buffer, obj);
 	g_free(file_buffer);
@@ -276,23 +273,6 @@ int main() {
 		printf("%f %f %f\n", v->x, v->y, v->z);
 	}
 
-#if 0
-	aux = obj->face_list;
-	while ((aux = g_slist_next(aux)) != NULL) {
-		f = (face_t *)aux->data;
-		printf("%d/%d/%d\n", f->fvertex_size, f->ftexture_size, f->fnormal_size);
-		for (i = 0; i < f->fvertex_size; i++) {
-			v = get_vertex(f->fvertex[i], obj);
-			printf("(%f %f %f) ", v->x, v->y, v->z);
-		}
-		printf("\n");
-		//if (v == NULL)
-		//  printf("SHIT! %d, %d\n", i, f->faces[i]);
-		//printf("%f %f %f\n", v->x, v->y, v->z);
-		//printf("\n");
-	}
-
-#endif
 	release_obj(obj);
 
 	return 0;
