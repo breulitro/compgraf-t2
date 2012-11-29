@@ -183,7 +183,7 @@ void cleanup_actors() {
 	g_slist_free(actors);
 }
 
-static void dump_actors() {
+void dump_actors() {
 	printf("actors.length = %d\n", g_slist_length(actors));
 	g_slist_foreach(actors, (GFunc)dump_actor, NULL);
 }
