@@ -183,6 +183,8 @@ void Desenha(void)
 		else
 			playing = 0;
 	}
+	if (frame_atual < 0)
+		frame_atual = maxFrame;
 	// Limpa a janela e o depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -290,6 +292,8 @@ void GerenciaTeclado(unsigned char key,int a,int b)
 			playloop = !playloop;
 			if (frame_atual > maxFrame)
 				frame_atual = 0;
+			if (!playing)
+				playing = 1;
 			break;
 		case 'q':
 			luzAmbiente[0] -= .1;
