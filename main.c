@@ -242,22 +242,23 @@ void DesenhaChao()
 void DesenhaChao() {
 	float z, x;
 
-	glColor3f(0, 0, 1);
+	glColor3f(0, 1, 0);
 	glLineWidth(1);
 	glBegin(GL_LINES);
 
-	for(z = 1000; z <= 1000; z += 10) {
-		glVertex3f(1000, 0.1f, z);
-		glVertex3f(1000, 0.1f, z);
+	for(z = -1000; z <= 1000; z += 10) {
+		glVertex3f(-1000, -0.1f, z);
+		glVertex3f(1000, -0.1f, z);
 	}
-	for(x = 1000; x <= 1000; x += 10) {
-		glVertex3f(x, 0.1f, 1000);
-		glVertex3f(x, 0.1f, 1000);
+	for(x = -1000; x <= 1000; x += 10) {
+		glVertex3f(x, -0.1f, -1000);
+		glVertex3f(x, -0.1f, 1000);
 	}
 	glEnd();
 	glLineWidth(1);
 }
 #endif
+
 void DefineIluminacao()
 {
 	// Capacidade de brilho do material
@@ -328,10 +329,10 @@ void Desenha(void)
 		frame_atual = maxFrame + 1;
 	// Limpa a janela e o depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	DesenhaChao();
 
 	EspecificaParametrosVisualizacao();
 	glColor3f(0.0f, 0.0f, 1.0f);
-	DesenhaChao();
 
 	DefineIluminacao();
 
