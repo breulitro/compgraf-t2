@@ -177,23 +177,22 @@ void Desenha(void)
 		frame_atual += !(++framerate % velocidade);
 // -1 Playing backward try
 //		frame_atual += playing * !(++framerate % velocidade);
-	if (frame_atual > maxFrame) {
+	if (frame_atual > maxFrame + 1) {
 		if (playloop)
 			frame_atual = 0;
 		else
 			playing = 0;
 	}
 	if (frame_atual < 0)
-		frame_atual = maxFrame;
+		frame_atual = maxFrame + 1;
 	// Limpa a janela e o depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	EspecificaParametrosVisualizacao();
+	glColor3f(0.0f, 0.0f, 1.0f);
 	DesenhaChao();
 
 	DefineIluminacao();
-
-	glColor3f(0.0f, 0.0f, 1.0f);
 
 	g_slist_foreach(actors_list, (GFunc)plot_actor, &frame_atual);
 
