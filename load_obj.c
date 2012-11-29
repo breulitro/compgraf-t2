@@ -33,9 +33,6 @@ static face_t *parse_new_face(char *str) {
 	char *saveptr, *tok, *ptr;
 	char *saveptr1, *tok1, *ptr1;
 	int i;
-	int *fvertex;
-	int *fnormal;
-	int *ftexture;
 	face_t *f;
 	int vals[3];
 

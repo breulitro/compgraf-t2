@@ -334,8 +334,6 @@ void idle() {
 
 // Programa Principal
 int main(int argc, char **argv) {
-	GHashTable *obj;
-
 	if (argc < 2) {
 		printf("usage: %s <script file> [glut params]\n", argv[0]);
 		return 1;
