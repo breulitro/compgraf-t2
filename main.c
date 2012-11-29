@@ -1,6 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
+
+#ifdef __APPLE__
+#include <glut.h>
+#else
 #include <GL/glut.h>
+#endif
 
 #include "t2.h"
 
