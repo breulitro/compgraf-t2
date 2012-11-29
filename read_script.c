@@ -11,16 +11,23 @@ actor_t *current = NULL;
 static void parse_header(char *token) {
 	int i;
 
+	if (token == NULL) {
+		printf("%s: NULL token received\n", __func__);
+		return;
+	}
+
 	sscanf(token, "#actors %d", &i);
 //	printf("%s: %d\n", __func__, i);
-	//	current = NULL;
+//	current = NULL;
 }
 
 static void parse_actor(char *token) {
 	gchar **tokens;
 
-	if (token == NULL)
+	if (token == NULL) {
+		printf("%s: NULL token received\n", __func__);
 		return;
+	}
 
 	tokens = g_strsplit(token, " ", -1);
 	if (g_strv_length(tokens) < 3)
@@ -43,8 +50,10 @@ static val_t *parse_val(char *token) {
 	float x, y, z;
 	val_t *ret;
 
-	if (token == NULL)
+	if (token == NULL) {
+		printf("%s: NULL token received\n", __func__);
 		return NULL;
+	}
 
 	ret = g_new0(val_t, 1);
 
@@ -64,8 +73,10 @@ static void parse_animation(char *token) {
 	gchar **tokens;
 	int i;
 
-	if (token == NULL)
+	if (token == NULL) {
+		printf("%s: NULL token received\n", __func__);
 		return;
+	}
 
 	if ((a = g_new0(animation_t, 1)) == NULL) {
 		perror("g_new()");
@@ -119,8 +130,10 @@ static void parse_animation(char *token) {
 static void parser(char *token) {
 	gchar **tokens;
 
-	if (token == NULL)
+	if (token == NULL) {
+		printf("%s: NULL token received\n", __func__);
 		return;
+	}
 
 	g_strchug(token);
 	tokens = g_strsplit(token, " ", -1);
@@ -139,8 +152,10 @@ static void parser(char *token) {
 }
 
 static void clean_animation(animation_t *a) {
-	if (a == NULL)
+	if (a == NULL) {
+		printf("%s: NULL animation received\n", __func__);
 		return;
+	}
 
 	if (a->trans != NULL)
 		g_free(a->trans);
@@ -151,8 +166,10 @@ static void clean_animation(animation_t *a) {
 }
 
 static void clean_actor(actor_t *a) {
-	if (a == NULL)
+	if (a == NULL) {
+		printf("%s: NULL actor received\n", __func__);
 		return;
+	}
 
 	if (a->file != NULL)
 		g_free(a->file);
@@ -161,7 +178,7 @@ static void clean_actor(actor_t *a) {
 	g_slist_free(a->animations);
 }
 
-static void cleanup_actors() {
+void cleanup_actors() {
 	g_slist_foreach(actors, (GFunc)clean_actor, NULL);
 	g_slist_free(actors);
 }
