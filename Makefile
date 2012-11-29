@@ -1,4 +1,4 @@
-CFLAGS = -I/System/Library/Frameworks/GLUT.framework/Versions/A/Headers/ -I/usr/local/include -I/usr/include -std=gnu99
+CFLAGS = -Wall -I/System/Library/Frameworks/GLUT.framework/Versions/A/Headers/ -I/usr/local/include -I/usr/include -std=gnu99
 #LDFLAGS = -lglut -lGL -lGLU -framework GLUT
 LDFLAGS = -framework GLUT -framework OpenGL
 GLIB_FLAGS = `pkg-config --libs glib-2.0 --cflags glib-2.0`
