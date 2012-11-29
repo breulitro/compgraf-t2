@@ -15,7 +15,7 @@ typedef struct {
 	int id;
 	char *file;
 	GSList *animations;
-  model_t *obj;
+	model_t *obj;
 } actor_t;
 
 void dump_val(val_t *v);
