@@ -134,6 +134,7 @@ void DefineIluminacao()
 	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
 	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz );
 
+#if 0
 	//Desabilita iluminacao para desenhar a esfera
 	glDisable(GL_LIGHTING);
 	//Desenha esfera na posição da fonte de luz
@@ -146,6 +147,7 @@ void DefineIluminacao()
 	glutSolidSphere(5, 50, 50);
 	glPopMatrix();
 	glEnable(GL_LIGHTING);
+#endif
 }
 
 // Função callback chamada para fazer o desenho
