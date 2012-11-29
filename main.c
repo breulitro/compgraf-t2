@@ -282,7 +282,7 @@ void GerenciaTeclado(unsigned char key,int a,int b)
       luzEspecular[2] += .1;
       break;
   }
-  glutPostRedisplay();
+  //glutPostRedisplay(); idle() does that
 }
 
 void GerenciaTecladoEspecial(int key, int x,int y)
@@ -309,8 +309,21 @@ void GerenciaTecladoEspecial(int key, int x,int y)
       break;
   }
 
-  glutPostRedisplay();
+  //glutPostRedisplay();
 }
+
+//NEW FROM HERE
+void idle() {
+  static char flag = 0;
+
+  if (flag)
+    return;
+
+  flag++;
+  Desenha();
+  flag--;
+}
+//DOWNTO HERE
 
 // Programa Principal
 int main(int argc, char **argv) {
@@ -345,8 +358,14 @@ int main(int argc, char **argv) {
   glutMouseFunc(GerenciaMouse);
   glutKeyboardFunc(GerenciaTeclado);
   glutSpecialFunc(GerenciaTecladoEspecial);
+
+//NEW FROM HERE
+  glutIdleFunc(idle);
+//DOWNTO HERE
+
   Inicializa();
   glutMainLoop();
+
 
   return 0;
 }
