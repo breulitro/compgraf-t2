@@ -117,6 +117,12 @@ static void parse_animation(char *token) {
 				}
 			}
 		}
+		if (a->trans == NULL)
+			printf("Trans NULO!\n");
+		if (a->scale == NULL)
+			printf("Scale NULO!\n");
+		if (a->rot == NULL)
+			printf("Rot NULO!\n");
 	}
 
 	g_strfreev(tokens);

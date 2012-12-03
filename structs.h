@@ -23,4 +23,7 @@ void dump_val_int(val_t *v);
 void dump_animation(animation_t *a);
 void dump_actor(actor_t *a);
 
+val_t *add_val_t(val_t *a, val_t *b);
+void free_val_t(val_t *v);
+
 #endif

@@ -8,22 +8,22 @@ typedef struct {
 } val_t;
 
 typedef struct {
-  GSList *vertex_list;
-  GSList *face_list;
-  GSList *texture_list;
-  GSList *normal_list;
+	GSList *vertex_list;
+	GSList *face_list;
+	GSList *texture_list;
+	GSList *normal_list;
 } model_t;
 
 // OBJ
 typedef struct {
 	int *fvertex;
-  int fvertex_size;
+	int fvertex_size;
 
-  int *ftexture;
-  int ftexture_size;
+	int *ftexture;
+	int ftexture_size;
 
-  int *fnormal;
-  int fnormal_size;
+	int *fnormal;
+	int fnormal_size;
 } face_t;
 
 

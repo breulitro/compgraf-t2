@@ -10,6 +10,26 @@ void dump_val(val_t *v) {
   printf("<%.2f,%.2f,%.2f>", v->x, v->y, v->z);
 }
 
+val_t *add_val_t(val_t *a, val_t *b) {
+	val_t *v;
+
+	if (a == NULL || b == NULL)
+		return NULL;
+
+	v = g_new0(val_t, 1);
+
+	v->x = a->x + b->x;
+	v->y = a->y + b->y;
+	v->z = a->z + b->z;
+
+	return v;
+}
+
+void free_val_t(val_t *v) {
+	if (v != NULL)
+		g_free(v);
+}
+
 void dump_val_int(val_t *v) {
   if (v == NULL)
     return;

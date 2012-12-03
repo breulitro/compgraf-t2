@@ -43,7 +43,9 @@ void plot_obj(model_t *obj, animation_t *anim) {
 
 	if (anim == NULL || obj == NULL)
 		return;
-	dump_animation(anim);
+	//dump_animation(anim);
+
+	glPushMatrix();
 
 	v = anim->trans;
 	if (v != NULL) {
@@ -79,6 +81,7 @@ void plot_obj(model_t *obj, animation_t *anim) {
 		}
 	}
 	glEnd();
+	glPopMatrix();
 }
 
 void plot_actor(actor_t *a, int *frame_atual) {
@@ -93,14 +96,13 @@ GSList *animation_list_linear = NULL;
  * dividor: por quanto vai ser dividido
  * n: qual momento tu quer a transformacao
  */
-
 val_t *divide_val(val_t *val, int divisor, int n) {
 	val_t *v;
 
 	if (val == NULL)
 		return NULL;
 
-	v = malloc(sizeof(val_t));
+	v = g_new0(val_t, 1);
 	//uma hora n == divisor
 	if (n == 0) {
 		v->x = val->x;
@@ -115,48 +117,75 @@ val_t *divide_val(val_t *val, int divisor, int n) {
 	return v;
 }
 
-void delta_func(animation_t *a, animation_t **i) {
-	int c, delta;
-	animation_t *anim, *aux;
+val_t *calcula_passo(val_t *prev_val, val_t *next_val, int delta) {
+	val_t *passo_val;
 
-	if (*i != NULL) {
+	if (prev_val == NULL || next_val == NULL || delta < 1) {
+		return NULL;
+	}
+
+	passo_val = g_new0(val_t, 1);
+
+	passo_val->x = (float)((next_val->x - prev_val->x) / (float)delta);
+	passo_val->y = (float)((next_val->y - prev_val->y) / (float)delta);
+	passo_val->z = (float)((next_val->z - prev_val->z) / (float)delta);
+
+	return passo_val;
+}
+
+/* Criando os frames intermediarios para interpolar */
+void delta_func(animation_t *next, animation_t **prev) {
+	int c, delta;
+	animation_t *anim, *aux, *prev_aux;
+	val_t *passo_trans, *passo_rot, *passo_scale;
+
+	if (*prev != NULL) {
 		printf("INICIAL:");
-		dump_animation(*i);
+		dump_animation(*prev);
 		printf("FINAL:");
-		dump_animation(a);
+		dump_animation(next);
 		printf("=========\n");
 
-		aux = *i;
-		delta = a->frame - aux->frame;
-		//'c' nunca vai começar em 1
-#ifdef DBG
-		printf("Iterando de %d a %d\n", aux->frame, a->frame);
-#endif
-		for (c = aux->frame; c <= a->frame; c++) {
-#ifdef DBG
-			printf("Iteracao: %d\n", c);
-#endif
-			anim = malloc(sizeof(animation_t));
-			anim->frame = c;
-			anim->trans = divide_val(a->trans, delta, (c - aux->frame));
-			anim->scale = divide_val(a->scale, delta, (c - aux->frame));
-			anim->rot = divide_val(a->rot, delta, (c - aux->frame));
+		prev_aux = *prev;
 
+		// Número de frames intermediarios que devem ser criados
+		delta = next->frame - prev_aux->frame;
+
+		passo_trans = calcula_passo(prev_aux->trans, next->trans, delta);
+		passo_rot = calcula_passo(prev_aux->rot, next->rot, delta);
+		passo_scale = calcula_passo(prev_aux->scale, next->scale, delta);
+
+		animation_list_linear = g_slist_append(animation_list_linear, prev_aux);
+		// Começamos o offset somando do primeiro frame
+		aux = prev_aux;
+		// 'c' nunca vai começar em 1
+		for (c = prev_aux->frame + 1; c < next->frame; c++) {
+			anim = g_new0(animation_t, 1);
+			anim->frame = c;
+			anim->trans = add_val_t(aux->trans, passo_trans);
+			anim->scale = add_val_t(aux->scale, passo_scale);
+			anim->rot = add_val_t(aux->rot, passo_rot);
+			//dump_animation(anim);
+			// Agora nosso próximo offset será baseado no último frame criado
+			aux = anim;
 			animation_list_linear = g_slist_append(animation_list_linear, anim);
 		}
+		animation_list_linear = g_slist_append(animation_list_linear, next);
+
+		if (passo_trans != NULL)
+			g_free(passo_trans);
+		if (passo_scale != NULL)
+			g_free(passo_scale);
+		if (passo_rot != NULL)
+			g_free(passo_rot);
 	} else {
 		//Essa animação começa só no frame a->frame, então bota nulo nos frames
 		//iniciais
-		for (c = 1; c <= a->frame; c++)
+		for (c = 1; c < next->frame; c++)
 			animation_list_linear = g_slist_append(animation_list_linear, NULL);
 	}
 
-	*i = a;
-}
-
-void free_val_t(val_t *v) {
-	if (v != NULL)
-		free(v);
+	*prev = next;
 }
 
 void load_obj(actor_t *a) {
@@ -167,9 +196,6 @@ void load_obj(actor_t *a) {
 
 	animation_list_linear = NULL;
 	g_slist_foreach(a->animations, (GFunc)delta_func, &inicial);
-
-	g_slist_foreach(a->animations, (GFunc)free_val_t, NULL);
-	g_slist_free(a->animations);
 
 	g_slist_foreach(animation_list_linear, (GFunc)dump_animation, NULL);
 	a->animations = animation_list_linear;
@@ -201,44 +227,7 @@ void EspecificaParametrosVisualizacao(void)
 	// Especifica posição do observador e do alvo
 	PosicionaObservador();
 }
-#if 0
-void DesenhaChao()
-{
-	//Flags para determinar a cord de cada quadrado
-	int flagx, flagz;
-	//Define a normal apontando para cima
-	glNormal3f(0,1,0);
 
-	glBegin(GL_QUADS);
-	flagx = 0;
-	//X varia de -TAM a TAM, de D em D
-	for(float x=-TAM; x<TAM; x+=D)
-	{
-		//Flagx determina a cor inicial
-		if(flagx) flagz = 0;
-		else flagz = 1;
-		//Z varia de -TAM a TAM, de D em D
-		for (float z=-TAM;z<TAM;z+=D)
-		{
-			//Escolhe cor
-			if(flagz)
-				glColor3f(0.4,0.4,0.4);
-			else
-				glColor3f(1,1,1);
-			//E desenha o quadrado
-			glVertex3f(x,-60,z);
-			glVertex3f(x+D,-60,z);
-			glVertex3f(x+D,-60,z+D);
-			glVertex3f(x,-60,z+D);
-			//Alterna cor
-			flagz = !flagz;
-		}
-		//A cada coluna, alterna cor inicial
-		flagx = !flagx;
-	}
-	glEnd();
-}
-#else
 void DesenhaChao() {
 	float z, x;
 
@@ -246,18 +235,17 @@ void DesenhaChao() {
 	glLineWidth(1);
 	glBegin(GL_LINES);
 
-	for(z = -1000; z <= 1000; z += 10) {
+	for (z = -1000; z <= 1000; z += 10) {
 		glVertex3f(-1000, -0.1f, z);
 		glVertex3f(1000, -0.1f, z);
 	}
-	for(x = -1000; x <= 1000; x += 10) {
+	for (x = -1000; x <= 1000; x += 10) {
 		glVertex3f(x, -0.1f, -1000);
 		glVertex3f(x, -0.1f, 1000);
 	}
 	glEnd();
 	glLineWidth(1);
 }
-#endif
 
 void DefineIluminacao()
 {
@@ -282,21 +270,6 @@ void DefineIluminacao()
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, luzDifusa );
 	glLightfv(GL_LIGHT0, GL_SPECULAR, luzEspecular );
 	glLightfv(GL_LIGHT0, GL_POSITION, posicaoLuz );
-
-#if 0
-	//Desabilita iluminacao para desenhar a esfera
-	glDisable(GL_LIGHTING);
-	//Desenha esfera na posição da fonte de luz
-	glPushMatrix();
-	glTranslatef(posicaoLuz[0]+60, posicaoLuz[1], posicaoLuz[2]);
-	glColor3f(1.0f, 0, 0);
-	glutSolidSphere(5, 50, 50);
-	glTranslatef(posicaoLuz[0], posicaoLuz[1], posicaoLuz[2]);
-	glColor3f(1.0f, 1.0f, 0.0f);
-	glutSolidSphere(5, 50, 50);
-	glPopMatrix();
-	glEnable(GL_LIGHTING);
-#endif
 }
 
 void getLatestFrameIndex(actor_t *a) {
@@ -539,6 +512,7 @@ int main(int argc, char **argv) {
 
 	g_slist_foreach(actors_list, (GFunc)getLatestFrameIndex, NULL);
 	g_slist_foreach(actors_list, (GFunc)load_obj, NULL);
+
 	glutInit(&argc,argv);
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
