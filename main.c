@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #ifdef __APPLE__
 #include <glut.h>
@@ -117,14 +118,30 @@ val_t *divide_val(val_t *val, int divisor, int n) {
 	return v;
 }
 
+// Esta função resolve o problema de um val_t estar nulo no script replicando o
+// valor do val_t anterior.
+void fix_empty_vals(val_t **prev, val_t **next) {
+	// se não há valor em prev, presume-se 0,0,0
+	if (*prev == NULL) {
+		*prev = g_new0(val_t, 1);
+		return;
+	}
+
+	if (*next == NULL) {
+		*next = g_new0(val_t, 1);
+		memcpy(*next, *prev, sizeof(val_t));
+	}
+}
+
 val_t *calcula_passo(val_t *prev_val, val_t *next_val, int delta) {
 	val_t *passo_val;
 
-	if (prev_val == NULL || next_val == NULL || delta < 1) {
+	if (prev_val == NULL || next_val == NULL || delta < 1)
 		return NULL;
-	}
 
 	passo_val = g_new0(val_t, 1);
+
+	// Se não tivermos um próximo valor, o objeto deve permanecer intacto
 
 	passo_val->x = (float)((next_val->x - prev_val->x) / (float)delta);
 	passo_val->y = (float)((next_val->y - prev_val->y) / (float)delta);
@@ -139,14 +156,22 @@ void delta_func(animation_t *next, animation_t **prev) {
 	animation_t *anim, *aux, *prev_aux;
 	val_t *passo_trans, *passo_rot, *passo_scale;
 
-	if (*prev != NULL) {
+	prev_aux = *prev;
+
+	if (prev_aux != NULL) {
 		printf("INICIAL:");
-		dump_animation(*prev);
+		dump_animation(prev_aux);
 		printf("FINAL:");
 		dump_animation(next);
 		printf("=========\n");
 
-		prev_aux = *prev;
+		printf("Prev: %d\n", prev_aux->frame);
+		printf("Next: %d\n", next->frame);
+
+		// Arrumando val_t nulo caso haja
+		fix_empty_vals(&prev_aux->trans, &next->trans);
+		fix_empty_vals(&prev_aux->rot, &next->rot);
+		fix_empty_vals(&prev_aux->scale, &next->scale);
 
 		// Número de frames intermediarios que devem ser criados
 		delta = next->frame - prev_aux->frame;
@@ -171,6 +196,11 @@ void delta_func(animation_t *next, animation_t **prev) {
 			animation_list_linear = g_slist_append(animation_list_linear, anim);
 		}
 		animation_list_linear = g_slist_append(animation_list_linear, next);
+
+		printf("INICIAL1:");
+		dump_animation(prev_aux);
+		printf("FINAL1:");
+		dump_animation(next);
 
 		if (passo_trans != NULL)
 			g_free(passo_trans);
