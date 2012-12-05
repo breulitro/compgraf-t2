@@ -37,6 +37,7 @@ int playloop = 1;
 int velocidade = 30;
 int frame_atual = 0;
 int maxFrame = 0;
+GLfloat red = 0, green = 0, blue = 0;
 
 GSList *actors_list = NULL;
 GSList *animation_list_linear = NULL;
@@ -350,7 +351,7 @@ void Desenha(void)
 	DesenhaChao();
 
 	EspecificaParametrosVisualizacao();
-	glColor3f(0.0f, 0.0f, 1.0f);
+	glColor3f(red, green, blue);
 
 	DefineIluminacao();
 
@@ -483,6 +484,24 @@ void GerenciaTeclado(unsigned char key,int a,int b)
 			luzEspecular[0] += .1;
 			luzEspecular[1] += .1;
 			luzEspecular[2] += .1;
+			break;
+		case 'r':
+			red += red < 1 ? 0.1 : 0;
+			break;
+		case 'g':
+			green += green < 1 ? 0.1 : 0;
+			break;
+		case 'b':
+			blue += blue < 1 ? 0.1 : 0;
+			break;
+		case 'R':
+			red -= red > 0 ? 0.1 : 0;
+			break;
+		case 'G':
+			green -= green > 0 ? 0.1 : 0;
+			break;
+		case 'B':
+			blue -= blue > 0 ? 0.1 : 0;
 			break;
 
 	}
