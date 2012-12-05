@@ -14,6 +14,7 @@
 #include "structs.h"
 #include "read_script.h"
 #include "load_obj.h"
+#include "help.h"
 
 #define SENS_ROT	10.0
 #define SENS_OBS	1.0
@@ -24,7 +25,7 @@
 
 int x_ini,y_ini,bot;
 GLfloat rotX, rotY, rotX_ini, rotY_ini;
-GLfloat obsX, obsY=200, obsZ=400, obsX_ini, obsY_ini, obsZ_ini;
+GLfloat obsX, obsY = 200, obsZ = 400, obsX_ini, obsY_ini, obsZ_ini;
 GLfloat fAspect = 1, angle = 45;
 
 GLfloat luzAmbiente[4]={0.2,0.2,0.2,1.0};
@@ -37,10 +38,12 @@ int playloop = 1;
 int velocidade = 30;
 int frame_atual = 0;
 int maxFrame = 0;
+int toggle_help = 0;
 GLfloat red = 0, green = 0, blue = 0;
 
 GSList *actors_list = NULL;
 GSList *animation_list_linear = NULL;
+
 
 void plot_obj(model_t *obj, animation_t *anim) {
 	face_t *face;
@@ -350,6 +353,9 @@ void Desenha(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	DesenhaChao();
 
+  if (toggle_help)
+    HelpDisplay(800, 600);
+
 	EspecificaParametrosVisualizacao();
 	glColor3f(red, green, blue);
 
@@ -455,11 +461,6 @@ void GerenciaTeclado(unsigned char key,int a,int b)
 			if (!playing)
 				playing = 1;
 			break;
-		case 'q':
-			luzAmbiente[0] -= .1;
-			luzAmbiente[1] -= .1;
-			luzAmbiente[2] -= .1;
-			break;
 		case 'w':
 			luzAmbiente[0] += .1;
 			luzAmbiente[1] += .1;
@@ -503,6 +504,10 @@ void GerenciaTeclado(unsigned char key,int a,int b)
 		case 'B':
 			blue -= blue > 0 ? 0.1 : 0;
 			break;
+    case 'H':
+    case 'h':
+      toggle_help = !toggle_help;
+      break;
 
 	}
 	//glutPostRedisplay(); idle() does that
@@ -568,6 +573,8 @@ int main(int argc, char **argv) {
 		printf("usage: %s <script file> [glut params]\n", argv[0]);
 		return 1;
 	}
+
+  toggle_help = 0;
 
 	signal(SIGUSR1, dump_infos);
 
