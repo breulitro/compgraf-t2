@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -530,12 +532,21 @@ void idle() {
 	flag--;
 }
 
+void dump_velocidade(int i) {
+	printf("Velocidade = %d\n"
+		"Frame Atual = %d\n",
+		velocidade, frame_atual);
+	sleep(1);
+}
+
 // Programa Principal
 int main(int argc, char **argv) {
 	if (argc < 2) {
 		printf("usage: %s <script file> [glut params]\n", argv[0]);
 		return 1;
 	}
+
+	signal(SIGUSR1, dump_velocidade);
 
 	printf("DEBUG: %s\n", argv[0]);
 	printf("DEBUG: %s\n", argv[1]);
