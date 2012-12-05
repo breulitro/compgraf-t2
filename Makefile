@@ -17,3 +17,6 @@ all:
 
 clean:
 	rm -f compgraf-t2
+
+exemplo:
+	gcc glutobj.c `pkg-config --libs glib-2.0 --cflags glib-2.0` -I/usr/local/include -I/usr/include -lglut -lGL -lGLU -lm -lglm -lpng
