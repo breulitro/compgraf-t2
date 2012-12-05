@@ -502,15 +502,11 @@ void GerenciaTecladoEspecial(int key, int x,int y)
 			break;
 		case GLUT_KEY_UP:
 			posicaoLuz[1] += 2;
-			velocidade -= 10;	// aumenta velocidade
-			if (velocidade <= 0)
-				velocidade = 1;
+			velocidade -= velocidade > 5 ? 5 : 0;	// aumenta velocidade
 			break;
 		case GLUT_KEY_DOWN:
 			posicaoLuz[1] -= 2;
-			velocidade += 10;	// diminui velocidade
-			if (velocidade >= 60);
-				velocidade = 59;
+			velocidade += velocidade < 75 ? 5 : 0;	// diminui velocidade
 			break;
 		case GLUT_KEY_PAGE_UP:
 			posicaoLuz[2] -= 2;
