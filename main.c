@@ -63,7 +63,10 @@ void plot_obj(model_t *obj, animation_t *anim) {
 
 	v = anim->rot;
 	if (v != NULL) {
+		//glRotatef(v->y, 0, 1, 0);
+		glRotatef(v->x, 1, 0, 0);
 		glRotatef(v->y, 0, 1, 0);
+		glRotatef(v->z, 0, 0, 1);
 	}
 
 	aux = obj->face_list;
@@ -230,6 +233,7 @@ void load_obj(actor_t *a) {
 	g_slist_foreach(animation_list_linear, (GFunc)dump_animation, NULL);
 	a->animations = animation_list_linear;
 }
+
 void PosicionaObservador(void)
 {
 	glMatrixMode(GL_MODELVIEW);
