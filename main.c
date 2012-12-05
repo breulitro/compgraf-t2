@@ -36,6 +36,9 @@ int velocidade = 30;
 int frame_atual = 0;
 int maxFrame = 0;
 
+GSList *actors_list = NULL;
+GSList *animation_list_linear = NULL;
+
 void plot_obj(model_t *obj, animation_t *anim) {
 	face_t *face;
 	val_t *v;
@@ -88,9 +91,6 @@ void plot_obj(model_t *obj, animation_t *anim) {
 void plot_actor(actor_t *a, int *frame_atual) {
 	plot_obj(a->obj, g_slist_nth_data(a->animations, *frame_atual));
 }
-
-GSList *actors_list = NULL;
-GSList *animation_list_linear = NULL;
 
 /**
  * trans: val_t a ser dividido
