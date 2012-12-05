@@ -92,7 +92,16 @@ void plot_obj(model_t *obj, animation_t *anim) {
 }
 
 void plot_actor(actor_t *a, int *frame_atual) {
-	plot_obj(a->obj, g_slist_nth_data(a->animations, *frame_atual));
+	guint len;
+	animation_t *anim;
+
+	len = g_slist_length(a->animations);
+	if (len > *frame_atual)
+		anim = (animation_t *)g_slist_nth_data(a->animations, *frame_atual);
+	else
+		anim = (animation_t *)g_slist_nth_data(a->animations, len - 1);
+
+	plot_obj(a->obj, anim);
 }
 
 /**

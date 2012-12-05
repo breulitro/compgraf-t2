@@ -2,7 +2,7 @@
 #id_actor 1 cow.obj
 Frame=1 trans=<0,10,0> scale=<1,1,1> rot=<0,0,0>
 Frame=10 trans=<10,10,10>
-Frame=20 rot=<0,90,0>
+Frame=30 rot=<0,90,0>
 #id_actor 2 yoda.obj
 Frame=3 trans=<20,10,0> scale=<1,1,1> rot=<0,0,90>
 Frame=7 trans=<30,10,0> scale=<0.5,0.5,0.5>
