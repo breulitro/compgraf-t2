@@ -533,10 +533,14 @@ void idle() {
 }
 
 void dump_velocidade(int i) {
-	printf("Velocidade = %d\n"
+	printf("Playing = %s\t"
+		"Looping = %s\t"
+		"MaxFrame = %d\n"
+		"Velocidade = %d\n"
 		"Frame Atual = %d\n",
-		velocidade, frame_atual);
-	sleep(1);
+		playing ? "true" : "false",
+		playloop ? "true" : "false",
+		maxFrame, velocidade, frame_atual);
 }
 
 // Programa Principal
