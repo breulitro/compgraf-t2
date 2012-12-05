@@ -97,8 +97,6 @@ void plot_actor(actor_t *a, int *frame_atual) {
 	animation_t *anim;
 
 	len = g_slist_length(a->animations);
-  printf("DEBUG: len %d\n", len);
-  printf("DEBUG: frame %d\n", *frame_atual);
 	if (len > *frame_atual)
 		anim = (animation_t *)g_slist_nth_data(a->animations, *frame_atual - 1);
 	else
