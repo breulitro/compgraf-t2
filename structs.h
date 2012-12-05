@@ -4,6 +4,13 @@
 
 #include "load_obj.h"
 
+int playing;
+int playloop;
+int velocidade;
+int frame_atual;
+int visual_debug;
+int maxFrame;
+
 typedef struct {
 	int frame;
 	val_t *trans;

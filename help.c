@@ -4,11 +4,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <glib.h>
+
 #ifdef __APPLE__
 #include <glut.h>
 #else
 #include <GL/glut.h>
 #endif
+
+#include "structs.h"
 
 int linestart = 10;		/* start point on y axis for text lines */
 int linespace = 20;		/* spac betwwen text lines */
@@ -91,6 +95,34 @@ void HelpDisplay(GLint ww, GLint wh)
   HelpRenderBitmapString(30, linestart +=
       linespace, (void *) Help_Font,
       "Enter = Play/Pause");
+  HelpRenderBitmapString(30, linestart +=
+      linespace, (void *) Help_Font,
+      "d = Debug Info");
+
+  if (visual_debug) {
+    char *info;
+
+    linestart = 10; // Reset no linestart
+    info = g_strdup_printf("Playing = %s", playing ? "true" : "false");
+    HelpRenderBitmapString(600, linestart += linespace, (void *) Help_Font, info);
+    g_free(info);
+
+    info = g_strdup_printf("Looping = %s", playloop ? "true" : "false");
+    HelpRenderBitmapString(600, linestart += linespace, (void *) Help_Font, info);
+    g_free(info);
+
+    info = g_strdup_printf("MaxFrame = %d", maxFrame);
+    HelpRenderBitmapString(600, linestart += linespace, (void *) Help_Font, info);
+    g_free(info);
+
+    info = g_strdup_printf("Speed = %d", velocidade);
+    HelpRenderBitmapString(600, linestart += linespace, (void *) Help_Font, info);
+    g_free(info);
+
+    info = g_strdup_printf("Current Frame = %d", frame_atual);
+    HelpRenderBitmapString(600, linestart += linespace, (void *) Help_Font, info);
+    g_free(info);
+  }
 
   glPopMatrix();
 

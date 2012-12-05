@@ -33,11 +33,6 @@ GLfloat luzDifusa[4]={0.7,0.7,0.7,1.0};		 // "cor"
 GLfloat luzEspecular[4]={1.0, 1.0, 1.0, 1.0};// "brilho"
 GLfloat posicaoLuz[4]={0.0, 30.0, 120.0, 1.0};
 
-int playing = 1;
-int playloop = 1;
-int velocidade = 30;
-int frame_atual = 0;
-int maxFrame = 0;
 int toggle_help = 0;
 GLfloat red = 0, green = 0, blue = 0;
 
@@ -102,6 +97,8 @@ void plot_actor(actor_t *a, int *frame_atual) {
 	animation_t *anim;
 
 	len = g_slist_length(a->animations);
+  printf("DEBUG: len %d\n", len);
+  printf("DEBUG: frame %d\n", *frame_atual);
 	if (len > *frame_atual)
 		anim = (animation_t *)g_slist_nth_data(a->animations, *frame_atual - 1);
 	else
@@ -334,21 +331,26 @@ void Desenha(void)
 {
 	static int framerate;
 
-	//FIXME: Ultimo frame nao esta sendo exibido
 	//  0 Stopped
 	//  1 Playing
 	if (playing)
 		frame_atual += !(++framerate % velocidade);
+
 // -1 Playing backward try
 //		frame_atual += playing * !(++framerate % velocidade);
-	if (frame_atual > maxFrame + 1) {
-		if (playloop)
-			frame_atual = 0;
-		else
+
+	if (frame_atual > maxFrame) {
+		if (playloop) {
+			frame_atual = 1;
+		} else {
+			frame_atual = maxFrame;
 			playing = 0;
+    }
 	}
+
 	if (frame_atual < 0)
-		frame_atual = maxFrame + 1;
+		frame_atual = maxFrame;
+
 	// Limpa a janela e o depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	DesenhaChao();
@@ -508,7 +510,10 @@ void GerenciaTeclado(unsigned char key,int a,int b)
     case 'h':
       toggle_help = !toggle_help;
       break;
-
+    case 'D':
+    case 'd':
+      visual_debug = !visual_debug;
+      break;
 	}
 	//glutPostRedisplay(); idle() does that
 }
@@ -574,7 +579,14 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+  // Valores default
   toggle_help = 0;
+  playing = 1;
+  playloop = 1;
+  velocidade = 30;
+  frame_atual = 0;
+  visual_debug = 0;
+  maxFrame = 0;
 
 	signal(SIGUSR1, dump_infos);
 
@@ -597,7 +609,7 @@ int main(int argc, char **argv) {
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 	glutInitWindowSize(800,600);
-	glutCreateWindow("Exercicio de Iluminacao");
+	glutCreateWindow("Trabalho2 - Computacao Grafica");
 	glutDisplayFunc(Desenha);
 	glutReshapeFunc(AlteraTamanhoJanela);
 	glutMotionFunc(GerenciaMovim);
