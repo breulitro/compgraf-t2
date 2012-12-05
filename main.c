@@ -532,7 +532,7 @@ void idle() {
 	flag--;
 }
 
-void dump_velocidade(int i) {
+void dump_infos(int i) {
 	printf("Playing = %s\t"
 		"Looping = %s\t"
 		"MaxFrame = %d\n"
@@ -550,7 +550,7 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-	signal(SIGUSR1, dump_velocidade);
+	signal(SIGUSR1, dump_infos);
 
 	printf("DEBUG: %s\n", argv[0]);
 	printf("DEBUG: %s\n", argv[1]);
