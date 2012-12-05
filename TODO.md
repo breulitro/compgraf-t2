@@ -1,2 +1,4 @@
-- Pause no último frame
+- frame_atual está indo 2 a mais que maxFrame
+
+- definir um coding standard :P
 
