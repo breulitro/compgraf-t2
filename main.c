@@ -100,7 +100,7 @@ void plot_actor(actor_t *a, int *frame_atual) {
 
 	len = g_slist_length(a->animations);
 	if (len > *frame_atual)
-		anim = (animation_t *)g_slist_nth_data(a->animations, *frame_atual);
+		anim = (animation_t *)g_slist_nth_data(a->animations, *frame_atual - 1);
 	else
 		anim = (animation_t *)g_slist_nth_data(a->animations, len - 1);
 
